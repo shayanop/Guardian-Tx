@@ -1,0 +1,11 @@
+# The GuardianTx baseline (decode + rules + eval + tests) runs on the Python
+# standard library alone -- nothing below is required to reproduce the results.
+#
+# Optional extras enable the two additive tools:
+#   anvil simulation  ->  pip install web3   (+ run `anvil` and set GUARDIANTX_RPC_URL)
+#   LLM explanation   ->  pip install anthropic   (+ set ANTHROPIC_API_KEY)
+#   test runner       ->  pip install pytest   (tests also run as plain scripts)
+
+# web3>=6.0
+# anthropic>=0.40
+# pytest>=8.0
