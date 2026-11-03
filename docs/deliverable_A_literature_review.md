@@ -126,8 +126,8 @@ deliberately, which directly justifies our injection-resilience focus and the
 120-case taxonomy we construct for evaluation.
 
 ### Paper 4 — Unmasking the Shadow Economy / Drainer-as-a-Service (IMC 2025)
-*B. He et al. (Zhejiang University, MBZUAI).* `[FILL: complete co-author list from
-the ACM DL page.]` This paper presents the first systematic measurement of the
+*B. He, Y. Hu, Z. Chen, Y. Chen, T. Yu, R. Chang, L. Wu, Y. Zhou (Zhejiang University,
+MBZUAI).* This paper presents the first systematic measurement of the
 Drainer-as-a-Service (DaaS) economy on Ethereum, in which professional operators
 rent turnkey wallet-draining kits to affiliates in exchange for a share of stolen
 funds. Using a snowball-sampling approach seeded from known phishing addresses, the
@@ -297,7 +297,7 @@ against a non-agentic baseline.
 
 [3] H. Zhang, J. Huang, K. Mei, Y. Yao, Z. Wang, C. Zhan, H. Wang, and Y. Zhang, "Agent Security Bench (ASB): Formalizing and Benchmarking Attacks and Defenses in LLM-based Agents," in *Proc. Int. Conf. Learning Representations (ICLR)*, 2025. arXiv:2410.02644. https://iclr.cc/virtual/2025/poster/29432
 
-[4] B. He *et al.*, "Unmasking the Shadow Economy: A Deep Dive into Drainer-as-a-Service Phishing on Ethereum," in *Proc. ACM Internet Measurement Conf. (IMC)*, 2025, doi: 10.1145/3730567.3764476. https://dl.acm.org/doi/10.1145/3730567.3764476
+[4] B. He, Y. Hu, Z. Chen, Y. Chen, T. Yu, R. Chang, L. Wu, and Y. Zhou, "Unmasking the Shadow Economy: A Deep Dive into Drainer-as-a-Service Phishing on Ethereum," in *Proc. ACM Internet Measurement Conf. (IMC)*, 2025, pp. 430–444, doi: 10.1145/3730567.3764476. https://dl.acm.org/doi/10.1145/3730567.3764476
 
 [5] Z. Chen, Y. Hu, B. He, D. Luo, L. Wu, and Y. Zhou, "Dissecting Payload-based Transaction Phishing on Ethereum," in *Proc. Network and Distributed System Security Symp. (NDSS)*, 2025. arXiv:2409.02386. https://www.ndss-symposium.org/wp-content/uploads/2025-311-paper.pdf
 
@@ -307,8 +307,8 @@ against a non-agentic baseline.
 
 [8] W. Jie, W. Qiu, H. Yang, M. Guo, X. Huang, T. Lei, Q. Zhang, H. Zheng, and Z. Zheng, "Agent4Vul: Multimodal LLM Agents for Smart Contract Vulnerability Detection," *Science China Information Sciences*, 2025, doi: 10.1007/s11432-024-4402-2. https://link.springer.com/article/10.1007/s11432-024-4402-2
 
-[9] Z. Wei, J. Sun, Y. Sun, Y. Liu, D. Wu, Z. Zhang, X. Zhang, M. Li, Y. Liu, C. Li, M. Wan, J. Dong, and L. Zhu, "Advanced Smart Contract Vulnerability Detection via LLM-Powered Multi-Agent Systems," *IEEE Trans. Software Engineering*, vol. 51, pp. 2830–2846, 2025. https://pure.bit.edu.cn/en/publications/
+[9] Z. Wei, J. Sun, Y. Sun, Y. Liu, D. Wu, Z. Zhang, X. Zhang, M. Li, Y. Liu, C. Li, M. Wan, J. Dong, and L. Zhu, "Advanced Smart Contract Vulnerability Detection via LLM-Powered Multi-Agent Systems," *IEEE Trans. Software Engineering*, vol. 51, no. 10, pp. 2830–2846, 2025, doi: 10.1109/TSE.2025.3597319. https://doi.org/10.1109/TSE.2025.3597319
 
-[10] L. Yu *et al.*, "Smart-LLaMA-DPO: Reinforced Large Language Model for Explainable Smart Contract Vulnerability Detection," *Proc. ACM Software Engineering*, ISSTA 2025, doi: 10.1145/3728878. https://conf.researchr.org/details/issta-2025/issta-2025-papers/9
+[10] L. Yu, Z. Huang, H. Yuan, S. Cheng, L. Yang, F. Zhang, C. Shen, J. Ma, J. Zhang, J. Lu, and C. Zuo, "Smart-LLaMA-DPO: Reinforced Large Language Model for Explainable Smart Contract Vulnerability Detection," *Proc. ACM Software Engineering*, vol. 2, no. ISSTA, pp. 182–205, 2025, doi: 10.1145/3728878. https://conf.researchr.org/details/issta-2025/issta-2025-papers/9
 
 [11] J. Jung, F. Brahman, and Y. Choi, "Trust or Escalate: LLM Judges with Provable Guarantees for Human Agreement," in *Proc. Int. Conf. Learning Representations (ICLR)*, 2025. arXiv:2407.18370. https://proceedings.iclr.cc/paper_files/paper/2025/hash/08dabd5345b37fffcbe335bd578b15a0-Abstract-Conference.html
