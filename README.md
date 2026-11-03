@@ -80,8 +80,22 @@ guardiantx/      core package (contracts, decoder, signatures, simulator, rules,
 data/            dataset builder + generated seed set
 eval/            evaluation harness (metrics, confusion matrix, per-category)
 tests/           decoder / rules / pipeline tests
-docs/            architecture
+docs/            architecture, literature review, proposal
+docs/phase1/     Phase 1 report source + PDF build script
 ```
+
+## Phase 1 report
+
+The submitted PDF (Deliverable A + B) is built from
+[docs/phase1/Phase1_source.html](docs/phase1/Phase1_source.html) with headless Chrome:
+
+```bash
+docs/phase1/build.sh --preview   # draft, shows unfinished sections
+docs/phase1/build.sh             # final: Phase1_GuardianTx_22I-0794.pdf
+```
+
+The final build stops and lists what is left if any section is unwritten or
+any cited figure is still flagged for verification.
 
 ## Roadmap to the proposed system (Phase 2+)
 
@@ -89,3 +103,10 @@ docs/            architecture
 - Prompt-injection taxonomy + resilience eval over untrusted on-chain data
 - Calibrated confidence (ECE, Brier, risk–coverage) and principled abstention
 - Expand the corpus toward ~400 tx with held-out unseen attack types
+
+## Team
+
+| Member | Roll no. | Responsibilities |
+|---|---|---|
+| Syed Kalbe Raza (group head) | 22I-0794 | Agent orchestration and tools (G3); calibration and evaluation (G2) |
+| Shayan Ahmed | 22I-0822 | Injection taxonomy and resilience layer (G1); dataset and literature review |
