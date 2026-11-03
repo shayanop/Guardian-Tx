@@ -8,3 +8,4 @@ venv/
 .DS_Store
 docs/_phase1_combined.html
 docs/*.pdf
+docs/phase1/*.pdf
