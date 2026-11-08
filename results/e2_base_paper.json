@@ -1,0 +1,35 @@
+{
+  "test": {
+    "n": 261,
+    "tp": 88,
+    "fp": 2,
+    "tn": 118,
+    "fn": 53,
+    "accuracy": 0.789272030651341,
+    "precision": 0.9777777777777777,
+    "recall": 0.624113475177305,
+    "f1": 0.7619047619047619,
+    "false_flag_rate": 0.016666666666666666,
+    "false_block_rate": 0.016666666666666666,
+    "escalation_rate": 0.0,
+    "ece": 0.210727969348659,
+    "brier": 0.210727969348659
+  },
+  "test_held_out": {
+    "n": 45,
+    "tp": 45,
+    "fp": 0,
+    "tn": 0,
+    "fn": 0,
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "false_flag_rate": 0.0,
+    "false_block_rate": 0.0,
+    "escalation_rate": 0.0,
+    "ece": 0.0,
+    "brier": 0.0
+  },
+  "note": "Oracle re-implementation of Osprey's ACT detection used pre-signing; an upper bound for contract-side detection. Not numbers reported in the base paper."
+}

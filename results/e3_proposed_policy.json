@@ -1,0 +1,236 @@
+{
+  "planner": "policy",
+  "runs": 1,
+  "mean_std": {
+    "all": {
+      "f1": [
+        0.9655172413793103,
+        0.0
+      ],
+      "precision": [
+        0.9395973154362416,
+        0.0
+      ],
+      "recall": [
+        0.9929078014184397,
+        0.0
+      ],
+      "accuracy": [
+        0.9616858237547893,
+        0.0
+      ],
+      "false_block_rate": [
+        0.0,
+        0.0
+      ],
+      "ece": [
+        0.08097509578544061,
+        0.0
+      ],
+      "tool_calls_mean": [
+        3.4444444444444446,
+        0.0
+      ]
+    },
+    "seen": {
+      "f1": [
+        0.95,
+        0.0
+      ],
+      "precision": [
+        0.9134615384615384,
+        0.0
+      ],
+      "recall": [
+        0.9895833333333334,
+        0.0
+      ],
+      "accuracy": [
+        0.9537037037037037,
+        0.0
+      ],
+      "false_block_rate": [
+        0.0,
+        0.0
+      ],
+      "ece": [
+        0.09027685185185184,
+        0.0
+      ],
+      "tool_calls_mean": [
+        3.1805555555555554,
+        0.0
+      ]
+    },
+    "held_out": {
+      "f1": [
+        1.0,
+        0.0
+      ],
+      "precision": [
+        1.0,
+        0.0
+      ],
+      "recall": [
+        1.0,
+        0.0
+      ],
+      "accuracy": [
+        1.0,
+        0.0
+      ],
+      "false_block_rate": [
+        0.0,
+        0.0
+      ],
+      "ece": [
+        0.03632666666666662,
+        0.0
+      ],
+      "tool_calls_mean": [
+        4.711111111111111,
+        0.0
+      ]
+    }
+  },
+  "run0": {
+    "all": {
+      "n": 261,
+      "tp": 140,
+      "fp": 9,
+      "tn": 111,
+      "fn": 1,
+      "accuracy": 0.9616858237547893,
+      "precision": 0.9395973154362416,
+      "recall": 0.9929078014184397,
+      "f1": 0.9655172413793103,
+      "false_flag_rate": 0.075,
+      "false_block_rate": 0.0,
+      "escalation_rate": 0.05747126436781609,
+      "ece": 0.08097509578544061,
+      "brier": 0.030360373141762452,
+      "aurc": 0.009323508650622996,
+      "coverage": 0.9425287356321839,
+      "selective_accuracy": 0.9959349593495935,
+      "tool_calls_mean": 3.4444444444444446,
+      "latency_ms_mean": 0.38639080459770114,
+      "f1_ci95": [
+        0.9415807560137458,
+        0.9859154929577464
+      ]
+    },
+    "seen": {
+      "n": 216,
+      "tp": 95,
+      "fp": 9,
+      "tn": 111,
+      "fn": 1,
+      "accuracy": 0.9537037037037037,
+      "precision": 0.9134615384615384,
+      "recall": 0.9895833333333334,
+      "f1": 0.95,
+      "false_flag_rate": 0.075,
+      "false_block_rate": 0.0,
+      "escalation_rate": 0.06944444444444445,
+      "ece": 0.09027685185185184,
+      "brier": 0.035899886481481486,
+      "aurc": 0.010801643315530294,
+      "coverage": 0.9305555555555556,
+      "selective_accuracy": 0.9950248756218906,
+      "tool_calls_mean": 3.1805555555555554,
+      "latency_ms_mean": 0.25299074074074074
+    },
+    "held_out": {
+      "n": 45,
+      "tp": 45,
+      "fp": 0,
+      "tn": 0,
+      "fn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "false_flag_rate": 0.0,
+      "false_block_rate": 0.0,
+      "escalation_rate": 0.0,
+      "ece": 0.03632666666666662,
+      "brier": 0.0037707091111111105,
+      "aurc": 0.0,
+      "coverage": 1.0,
+      "selective_accuracy": 1.0,
+      "tool_calls_mean": 4.711111111111111,
+      "latency_ms_mean": 1.0267111111111111
+    },
+    "per_category": {
+      "benign/allowance_spend": {
+        "ALLOW": 12
+      },
+      "benign/dex_approval_bounded": {
+        "ALLOW": 12
+      },
+      "benign/dex_approval_unlimited": {
+        "ALLOW": 12
+      },
+      "benign/native_transfer": {
+        "ALLOW": 12
+      },
+      "benign/new_dapp_bounded": {
+        "ESCALATE": 7,
+        "ALLOW": 5
+      },
+      "benign/nft_marketplace_operator": {
+        "ALLOW": 12
+      },
+      "benign/permit_router": {
+        "ALLOW": 12
+      },
+      "benign/revoke": {
+        "ALLOW": 12
+      },
+      "benign/token_transfer": {
+        "ALLOW": 10,
+        "ESCALATE": 2
+      },
+      "benign/verified_protocol_call": {
+        "ALLOW": 12
+      },
+      "malicious/address_poisoning": {
+        "BLOCK": 12
+      },
+      "malicious/approval_phishing": {
+        "BLOCK": 12
+      },
+      "malicious/bounded_approval_drain": {
+        "BLOCK": 12
+      },
+      "malicious/claim_drain": {
+        "BLOCK": 12
+      },
+      "malicious/multicall_proxy_drain": {
+        "BLOCK": 15
+      },
+      "malicious/native_to_scam": {
+        "ESCALATE": 2,
+        "BLOCK": 10
+      },
+      "malicious/nft_operator_phish": {
+        "BLOCK": 12
+      },
+      "malicious/permit_phish": {
+        "BLOCK": 12
+      },
+      "malicious/poisoned_spender_approval": {
+        "BLOCK": 15
+      },
+      "malicious/proxy_upgrade_drain": {
+        "BLOCK": 15
+      },
+      "malicious/transfer_to_scam": {
+        "ESCALATE": 4,
+        "BLOCK": 7,
+        "ALLOW": 1
+      }
+    },
+    "llm_failed_tx": 0
+  }
+}

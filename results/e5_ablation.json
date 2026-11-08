@@ -1,0 +1,80 @@
+[
+  {
+    "config": "full_system",
+    "f1": 0.9655172413793103,
+    "precision": 0.9395973154362416,
+    "recall": 0.9929078014184397,
+    "false_block_rate": 0.0,
+    "escalation_rate": 0.05747126436781609,
+    "ece": 0.08097509578544061,
+    "brier": 0.030360373141762452,
+    "held_out_f1": 1.0,
+    "tool_calls_mean": 3.4444444444444446,
+    "worst_case_asr": 0.0
+  },
+  {
+    "config": "-sanitizer (G1)",
+    "f1": 0.9655172413793103,
+    "precision": 0.9395973154362416,
+    "recall": 0.9929078014184397,
+    "false_block_rate": 0.0,
+    "escalation_rate": 0.05747126436781609,
+    "ece": 0.08097509578544061,
+    "brier": 0.030360373141762452,
+    "held_out_f1": 1.0,
+    "tool_calls_mean": 3.4444444444444446,
+    "worst_case_asr": 0.0
+  },
+  {
+    "config": "-verifier (G1)",
+    "f1": 0.9655172413793103,
+    "precision": 0.9395973154362416,
+    "recall": 0.9929078014184397,
+    "false_block_rate": 0.0,
+    "escalation_rate": 0.05747126436781609,
+    "ece": 0.08097509578544061,
+    "brier": 0.030360373141762452,
+    "held_out_f1": 1.0,
+    "tool_calls_mean": 3.4444444444444446,
+    "worst_case_asr": 0.72
+  },
+  {
+    "config": "-calibration (G2)",
+    "f1": 0.9745454545454546,
+    "precision": 1.0,
+    "recall": 0.950354609929078,
+    "false_block_rate": 0.0,
+    "escalation_rate": 0.0,
+    "ece": 0.08097509578544061,
+    "brier": 0.030360373141762452,
+    "held_out_f1": 1.0,
+    "tool_calls_mean": 3.4444444444444446,
+    "worst_case_asr": 0.0
+  },
+  {
+    "config": "-simulation",
+    "f1": 0.9655172413793103,
+    "precision": 0.9395973154362416,
+    "recall": 0.9929078014184397,
+    "false_block_rate": 0.0,
+    "escalation_rate": 0.05747126436781609,
+    "ece": 0.12129463601532565,
+    "brier": 0.0425568283908046,
+    "held_out_f1": 1.0,
+    "tool_calls_mean": 3.2835249042145596,
+    "worst_case_asr": 0.0
+  },
+  {
+    "config": "fixed tool order (G3)",
+    "f1": 0.9395973154362417,
+    "precision": 0.89171974522293,
+    "recall": 0.9929078014184397,
+    "false_block_rate": 0.0,
+    "escalation_rate": 0.08812260536398467,
+    "ece": 0.08209999999999995,
+    "brier": 0.035442986475095785,
+    "held_out_f1": 1.0,
+    "tool_calls_mean": 4.942528735632184,
+    "worst_case_asr": 0.0
+  }
+]

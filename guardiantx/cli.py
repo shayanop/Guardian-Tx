@@ -4,6 +4,8 @@
     echo '{"to":"0x...","data":"0x095ea7b3..."}' | python -m guardiantx.cli
     python -m guardiantx.cli --file tx.json --json      # machine-readable
     python -m guardiantx.cli --file tx.json --simulate --explain
+    python -m guardiantx.cli --file tx.json --agent --trace           # Phase-2 agent
+    python -m guardiantx.cli --file tx.json --agent --planner llm     # LLM planner (NVIDIA NIM)
 """
 from __future__ import annotations
 
@@ -42,6 +44,10 @@ def main(argv=None) -> int:
     ap.add_argument("--json", action="store_true", help="emit the full report as JSON")
     ap.add_argument("--simulate", action="store_true", help="run Anvil/RPC simulation if available")
     ap.add_argument("--explain", action="store_true", help="add an LLM explanation if available")
+    ap.add_argument("--agent", action="store_true", help="use the Phase-2 investigating agent")
+    ap.add_argument("--planner", default="policy", choices=["policy", "fixed", "llm"], help="agent planner")
+    ap.add_argument("--world", default=None, help="chain-environment JSON (default: data/world.json)")
+    ap.add_argument("--trace", action="store_true", help="print the agent trajectory")
     args = ap.parse_args(argv)
 
     try:  # make non-ASCII output safe on Windows consoles (cp1252)
@@ -52,13 +58,36 @@ def main(argv=None) -> int:
     raw = open(args.file, encoding="utf-8").read() if args.file else sys.stdin.read()
     tx = json.loads(raw)
 
-    report = analyze_dict(tx, simulate=args.simulate, explain=args.explain)
-    if args.json:
-        print(json.dumps(report.to_dict(), indent=2))
+    trace = None
+    if args.agent:
+        try:
+            report, trace = _run_agent(tx, args)
+        except RuntimeError as e:  # e.g. --planner llm without NVIDIA_API_KEY
+            print(f"error: {e}", file=sys.stderr)
+            return 1
     else:
+        report = analyze_dict(tx, simulate=args.simulate, explain=args.explain)
+    if args.json:
+        print(json.dumps({**report.to_dict(), **({"trace": trace} if trace else {})}, indent=2, default=str))
+    else:
+        if trace and args.trace:
+            for st in trace["steps"]:
+                print(f"  step {st['step']}: {st['thought']}\n    -> {st['tool']}({st['args']})")
+            print()
         print(_render(report))
     # exit code doubles as a signal for scripts: 0 allow/warn, 2 block/escalate
     return 0 if report.decision.value in ("ALLOW", "WARN") else 2
+
+
+def _run_agent(tx: dict, args):
+    import os
+    from .agent import AgentConfig, run_agent, tx_from_row
+    from .calibration import Calibrator
+    from .world import DEFAULT_WORLD, World
+    cal_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results", "calibration.json")
+    cal = Calibrator.load(cal_path) if os.path.exists(cal_path) else Calibrator.identity()
+    return run_agent(tx_from_row(tx), World.load(args.world or DEFAULT_WORLD),
+                     AgentConfig(planner=args.planner, calibrator=cal))
 
 
 if __name__ == "__main__":

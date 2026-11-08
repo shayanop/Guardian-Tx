@@ -1,0 +1,9 @@
+{
+  "a": 1.0,
+  "b": 0.0,
+  "t_low": 0.25,
+  "t_block": 0.475,
+  "calibrated": false,
+  "abstain": true,
+  "method": "identity"
+}

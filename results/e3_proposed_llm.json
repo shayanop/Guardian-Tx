@@ -1,0 +1,204 @@
+{
+  "planner": "llm",
+  "runs": 1,
+  "mean_std": {
+    "all": {
+      "f1": [
+        0.8571428571428571,
+        0.0
+      ],
+      "precision": [
+        0.75,
+        0.0
+      ],
+      "recall": [
+        1.0,
+        0.0
+      ],
+      "accuracy": [
+        0.8333333333333334,
+        0.0
+      ],
+      "false_block_rate": [
+        0.0,
+        0.0
+      ],
+      "ece": [
+        0.17305,
+        0.0
+      ],
+      "tool_calls_mean": [
+        4.166666666666667,
+        0.0
+      ]
+    },
+    "seen": {
+      "f1": [
+        0.8333333333333333,
+        0.0
+      ],
+      "precision": [
+        0.7142857142857143,
+        0.0
+      ],
+      "recall": [
+        1.0,
+        0.0
+      ],
+      "accuracy": [
+        0.8181818181818182,
+        0.0
+      ],
+      "false_block_rate": [
+        0.0,
+        0.0
+      ],
+      "ece": [
+        0.18859090909090911,
+        0.0
+      ],
+      "tool_calls_mean": [
+        3.909090909090909,
+        0.0
+      ]
+    },
+    "held_out": {
+      "f1": [
+        1.0,
+        0.0
+      ],
+      "precision": [
+        1.0,
+        0.0
+      ],
+      "recall": [
+        1.0,
+        0.0
+      ],
+      "accuracy": [
+        1.0,
+        0.0
+      ],
+      "false_block_rate": [
+        0.0,
+        0.0
+      ],
+      "ece": [
+        0.0020999999999999908,
+        0.0
+      ],
+      "tool_calls_mean": [
+        7.0,
+        0.0
+      ]
+    }
+  },
+  "run0": {
+    "all": {
+      "n": 12,
+      "tp": 6,
+      "fp": 2,
+      "tn": 4,
+      "fn": 0,
+      "accuracy": 0.8333333333333334,
+      "precision": 0.75,
+      "recall": 1.0,
+      "f1": 0.8571428571428571,
+      "false_flag_rate": 0.3333333333333333,
+      "false_block_rate": 0.0,
+      "escalation_rate": 0.25,
+      "ece": 0.17305,
+      "brier": 0.11244438833333333,
+      "aurc": 0.25860088985088986,
+      "coverage": 0.75,
+      "selective_accuracy": 1.0,
+      "tool_calls_mean": 4.166666666666667,
+      "latency_ms_mean": 60647.10841666666,
+      "f1_ci95": [
+        0.6,
+        1.0
+      ]
+    },
+    "seen": {
+      "n": 11,
+      "tp": 5,
+      "fp": 2,
+      "tn": 4,
+      "fn": 0,
+      "accuracy": 0.8181818181818182,
+      "precision": 0.7142857142857143,
+      "recall": 1.0,
+      "f1": 0.8333333333333333,
+      "false_flag_rate": 0.3333333333333333,
+      "false_block_rate": 0.0,
+      "escalation_rate": 0.2727272727272727,
+      "ece": 0.18859090909090911,
+      "brier": 0.12266620454545453,
+      "aurc": 0.27453430407975865,
+      "coverage": 0.7272727272727273,
+      "selective_accuracy": 1.0,
+      "tool_calls_mean": 3.909090909090909,
+      "latency_ms_mean": 55126.855363636365
+    },
+    "held_out": {
+      "n": 1,
+      "tp": 1,
+      "fp": 0,
+      "tn": 0,
+      "fn": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "false_flag_rate": 0.0,
+      "false_block_rate": 0.0,
+      "escalation_rate": 0.0,
+      "ece": 0.0020999999999999908,
+      "brier": 4.409999999999961e-06,
+      "aurc": 0.0,
+      "coverage": 1.0,
+      "selective_accuracy": 1.0,
+      "tool_calls_mean": 7.0,
+      "latency_ms_mean": 121369.892
+    },
+    "per_category": {
+      "benign/dex_approval_bounded": {
+        "ALLOW": 1
+      },
+      "benign/native_transfer": {
+        "ESCALATE": 1
+      },
+      "benign/new_dapp_bounded": {
+        "ESCALATE": 1
+      },
+      "benign/permit_router": {
+        "WARN": 1
+      },
+      "benign/revoke": {
+        "ALLOW": 1
+      },
+      "benign/verified_protocol_call": {
+        "ALLOW": 1
+      },
+      "malicious/address_poisoning": {
+        "ESCALATE": 1
+      },
+      "malicious/approval_phishing": {
+        "BLOCK": 1
+      },
+      "malicious/bounded_approval_drain": {
+        "BLOCK": 1
+      },
+      "malicious/multicall_proxy_drain": {
+        "BLOCK": 1
+      },
+      "malicious/nft_operator_phish": {
+        "BLOCK": 1
+      },
+      "malicious/transfer_to_scam": {
+        "BLOCK": 1
+      }
+    },
+    "llm_failed_tx": 0
+  }
+}

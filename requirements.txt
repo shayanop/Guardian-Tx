@@ -1,11 +1,12 @@
-# The GuardianTx baseline (decode + rules + eval + tests) runs on the Python
-# standard library alone -- nothing below is required to reproduce the results.
+# GuardianTx core, the policy-planner agent, and all experiments (E1-E6) run on the
+# Python standard library alone -- nothing below is required to reproduce results/.
 #
-# Optional extras enable the two additive tools:
-#   anvil simulation  ->  pip install web3   (+ run `anvil` and set GUARDIANTX_RPC_URL)
-#   LLM explanation   ->  pip install anthropic   (+ set ANTHROPIC_API_KEY)
-#   test runner       ->  pip install pytest   (tests also run as plain scripts)
+# Optional extras:
+#   LLM planner / explainer  ->  no package needed: NVIDIA NIM via stdlib urllib (+ NVIDIA_API_KEY, see .env.example)
+#   real-RPC simulation      ->  web3               (+ anvil, GUARDIANTX_RPC_URL)
+#   test runner              ->  pytest             (tests also run as plain scripts)
+#   Phase-1 PDF build        ->  markdown           (+ Chrome/Edge)
 
 # web3>=6.0
-# anthropic>=0.40
 # pytest>=8.0
+# markdown>=3.5

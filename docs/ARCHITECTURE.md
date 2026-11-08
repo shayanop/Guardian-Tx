@@ -1,74 +1,64 @@
-# GuardianTx — Architecture (Phase 1 baseline)
+# GuardianTx — Architecture (Phase 2)
 
 GuardianTx analyzes an Ethereum transaction **before the user signs it** and
-returns a risk decision: `ALLOW` / `WARN` / `BLOCK` / `ESCALATE`.
+returns `ALLOW` / `WARN` / `BLOCK` / `ESCALATE`. Phase 1 shipped a fixed
+decode → rules baseline (`pipeline.analyze`, still available and used as E1).
+Phase 2 adds an investigating agent built on the same contracts.
 
-Phase 1 ships the **non-agentic baseline** (deterministic tools + rules). The
-proposed LLM agent (Phase 2) sits *on top of* the same tools and is measured
-against this baseline.
-
-## Data flow
+## Control flow (`agent.run_agent`)
 
 ```
-                         Transaction (to, data, value, from, context)
-                                        |
-                                        v
-                             +---------------------+
-                             |   decoder (tool)    |  selector DB + static-word decode
-                             +----------+----------+
-                                        | DecodedCall(function, args, known?)
-                   (optional)           v
-        +------------------+   +---------------------+
-        | simulator (tool) |-->|   rules engine      |  heuristics -> Finding[]
-        | anvil / eth_call |   |  (baseline scorer)  |  noisy-OR -> score
-        +------------------+   +----------+----------+
-                                        | RiskReport(score, decision, findings)
-                   (optional)           v
-                             +---------------------+
-                             |  llm explainer      |  provider setup + injection
-                             |  (agent seed)       |  sanitation of untrusted text
-                             +----------+----------+
-                                        v
-                          ALLOW / WARN / BLOCK / ESCALATE  (+ rationale)
+Transaction ──► State(tx, Toolbox, Evidence)
+                 │
+                 ▼
+     ┌──► planner.next(state) ──► Action(thought, tool, args)  ─┐
+     │        (policy | fixed | llm | compliant wrapper)        │ finish?
+     │                                                          ▼
+     │   Toolbox.call(tool, args)  (retries, fault injection, sanitizer on untrusted text)
+     │        │ observation
+     └────────┴── Evidence.record(...); trace.steps.append(...)
+                 │ (finish or step budget)
+                 ▼
+  assess(tx, evidence) → findings, raw score, cannot_assess, missing evidence
+  Calibrator.decide(raw) → probability, evidence decision            (G2)
+  guard.verify(evidence decision, proposed, missing) → final         (G1)
+  guard.echoes_untrusted(rationale) → withhold copied attacker text  (G1)
+                 ▼
+  RiskReport + trace {steps, final, usage}
 ```
 
-## Structured contracts (`guardiantx/contracts.py`)
+## Components
 
-| Object        | Role                                                            |
-|---------------|----------------------------------------------------------------|
-| `Transaction` | the pre-signing request + optional wallet context              |
-| `DecodedCall` | decoder output: function, named args, `known`/`decode_error`   |
-| `Finding`     | one risk signal: `code`, `severity` in [0,1], `message`        |
-| `RiskReport`  | aggregated `score`, `decision`, `findings`, `rationale`         |
+| Module | Role |
+|---|---|
+| `world.py` | Simulated chain: accounts (EOA/contract, age, verified, scam-listed, proxy slot, verified ABI, drainer logic), balances, allowances, untrusted metadata. `simulate()` returns asset and approval diffs. |
+| `tools.py` | `decode_calldata` (optionally with a verified ABI), `lookup_address`, `resolve_proxy`, `simulate_tx`, `inspect_allowance`. Retries; untrusted strings pass through the sanitizer; JSON specs for the LLM. |
+| `assess.py` | Phase-1 rule findings on the (re-)decoded call, discounted or boosted by tool evidence; required-evidence checklist. Uses only trusted fields. |
+| `calibration.py` (G2) | Platt scaling kept only if it wins on dev CV; `t_block` from a false-block budget; `t_low` from a human-review budget; the band between them is ESCALATE. |
+| `guard.py` (G1) | `screen` (normalise, decode, match the injection taxonomy, quarantine); `verify` (decision floor + evidence checklist); `echoes_untrusted` (output provenance). |
+| `agent.py` (G3) | Loop, `PolicyPlanner` (data-dependent), `FixedPlanner` (ablation), `CompliantPlanner` (worst-case G1 reasoner). |
+| `llm.py` | `LLMPlanner`: OpenAI-compatible function-calling loop (NVIDIA NIM, falling back to Groq), tool results answered per call id, `finish` tool. Its proposal goes through the same verifier. |
+| `baselines.py` | Oracle re-implementation of Osprey's ACT detection for E2. |
 
-Everything is JSON-serializable, so transactions and reports move cleanly
-between the CLI, the eval harness, the dataset, and (later) the LLM.
+## Trust boundary
 
-## Tools
-
-- **decoder** — pure-stdlib calldata decoding against a hardcoded selector DB
-  (offline, no 4byte lookups). Covers the in-scope drainer surface: `approve`,
-  `increaseAllowance`, `transferFrom`, `setApprovalForAll`, `permit`, `transfer`.
-- **simulator** *(optional)* — forked `eth_call` via Anvil/RPC to detect reverts.
-  Degrades to "unavailable" with no effect on the baseline.
-- **rules engine** — the baseline scorer. Detects unlimited approvals, operator
-  approvals, gasless permits, pull-transfers, address poisoning, unknown
-  interactions, and native value sends. Findings combine with noisy-OR.
-- **llm explainer** *(optional)* — provider wiring + an injection-sanitation
-  step for untrusted on-chain strings. Seed of the Phase-2 agent.
+Trusted: code facts and curated registries (verification status, scam lists,
+age, proxy slots, verified ABIs, simulation diffs). Untrusted: contract-supplied
+metadata strings and revert reasons. Untrusted text never contributes to the
+score except as the `INJECTION_ATTEMPT` signal, and it never reaches the user
+verbatim through the reasoner's rationale.
 
 ## Decision policy
 
-- `score >= 0.60` -> **BLOCK**
-- `score >= 0.25` -> **WARN**
-- otherwise        -> **ALLOW**
-- cannot assess (unknown selector, decode failure, reverting sim) -> **ESCALATE**
+`p = calibrator.prob(raw)`:
+- `p ≥ t_block` → **BLOCK**
+- cannot assess (undecodable or unknown selector with no simulation) → **ESCALATE**
+- `t_low ≤ p < t_block` → **ESCALATE** (abstention band)
+- otherwise **WARN** if any finding has severity ≥ 0.25, else **ALLOW**
 
-## Where the three research gaps attach (see proposal, Deliverable B)
+The verifier then raises the decision to the reasoner's proposal if that is
+stricter (it never lowers it). It also ESCALATEs when required evidence is
+missing, for example the spender was never looked up or an unknown selector was
+never simulated.
 
-- **Injection resilience** — the `llm.sanitize()` boundary where untrusted
-  on-chain data enters the agent.
-- **Risk calibration / abstention** — the `score` and the ESCALATE band; Phase 2
-  adds ECE / Brier / risk–coverage evaluation.
-- **Dynamic investigation** — the agent loop that chooses which tools to call
-  (vs. the baseline's fixed decode→rules path).
+Fitted values are in `results/calibration.json`, and the CLI loads them.

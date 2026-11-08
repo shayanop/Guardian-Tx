@@ -1,0 +1,671 @@
+{
+  "n_test": 261,
+  "n_failures": 10,
+  "by_failure_category": {
+    "FP: new/unverified legitimate counterparty": 9,
+    "FN: attacker with clean reputation": 1
+  },
+  "by_tx_category": {
+    "new_dapp_bounded": 7,
+    "token_transfer": 2,
+    "transfer_to_scam": 1
+  },
+  "failures": [
+    {
+      "id": "new_dapp_bounded-01",
+      "category": "new_dapp_bounded",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: new/unverified legitimate counterparty",
+      "codes": [
+        "UNVERIFIED_SPENDER"
+      ],
+      "prob": 0.44
+    },
+    {
+      "id": "new_dapp_bounded-03",
+      "category": "new_dapp_bounded",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: new/unverified legitimate counterparty",
+      "codes": [
+        "UNVERIFIED_SPENDER"
+      ],
+      "prob": 0.44
+    },
+    {
+      "id": "new_dapp_bounded-05",
+      "category": "new_dapp_bounded",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: new/unverified legitimate counterparty",
+      "codes": [
+        "UNVERIFIED_SPENDER"
+      ],
+      "prob": 0.44
+    },
+    {
+      "id": "new_dapp_bounded-07",
+      "category": "new_dapp_bounded",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: new/unverified legitimate counterparty",
+      "codes": [
+        "UNVERIFIED_SPENDER"
+      ],
+      "prob": 0.44
+    },
+    {
+      "id": "new_dapp_bounded-09",
+      "category": "new_dapp_bounded",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: new/unverified legitimate counterparty",
+      "codes": [
+        "UNVERIFIED_SPENDER"
+      ],
+      "prob": 0.44
+    },
+    {
+      "id": "new_dapp_bounded-14",
+      "category": "new_dapp_bounded",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: new/unverified legitimate counterparty",
+      "codes": [
+        "UNVERIFIED_SPENDER"
+      ],
+      "prob": 0.44
+    },
+    {
+      "id": "new_dapp_bounded-18",
+      "category": "new_dapp_bounded",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: new/unverified legitimate counterparty",
+      "codes": [
+        "UNVERIFIED_SPENDER"
+      ],
+      "prob": 0.44
+    },
+    {
+      "id": "token_transfer-11",
+      "category": "token_transfer",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: new/unverified legitimate counterparty",
+      "codes": [
+        "FRESH_COUNTERPARTY"
+      ],
+      "prob": 0.25
+    },
+    {
+      "id": "token_transfer-16",
+      "category": "token_transfer",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: new/unverified legitimate counterparty",
+      "codes": [
+        "FRESH_COUNTERPARTY"
+      ],
+      "prob": 0.25
+    },
+    {
+      "id": "transfer_to_scam-12",
+      "category": "transfer_to_scam",
+      "label": "malicious",
+      "decision": "ALLOW",
+      "failure_category": "FN: attacker with clean reputation",
+      "codes": [],
+      "prob": 0.0
+    }
+  ],
+  "representative_successes": [
+    {
+      "id": "multicall_proxy_drain-00",
+      "category": "multicall_proxy_drain",
+      "label": "malicious",
+      "decision": "BLOCK",
+      "trace": {
+        "planner": "policy",
+        "steps": [
+          {
+            "step": 0,
+            "thought": "Start by decoding what the calldata does.",
+            "tool": "decode_calldata",
+            "args": {},
+            "observation": {
+              "selector": "0xac9650d8",
+              "function": null,
+              "signature": null,
+              "args": {},
+              "known": false,
+              "decode_error": null,
+              "abi_source": "selector_db"
+            },
+            "latency_ms": 0.01
+          },
+          {
+            "step": 1,
+            "thought": "Check what the target address is (contract? verified? proxy?).",
+            "tool": "lookup_address",
+            "args": {
+              "address": "0xa7acc9a4ee0fa67b93ee499bd4bf3044513ffb88"
+            },
+            "observation": {
+              "address": "0xa7acc9a4ee0fa67b93ee499bd4bf3044513ffb88",
+              "known": true,
+              "kind": "contract",
+              "age_days": 19,
+              "tx_count": 46,
+              "verified": false,
+              "scam_listed": false,
+              "label": "",
+              "is_proxy": true,
+              "has_verified_abi": false,
+              "fresh": false,
+              "metadata_untrusted": {
+                "name": "Claim Airdrop"
+              }
+            },
+            "latency_ms": 0.025
+          },
+          {
+            "step": 2,
+            "thought": "Target is a proxy: find the code that will actually run.",
+            "tool": "resolve_proxy",
+            "args": {
+              "address": "0xa7acc9a4ee0fa67b93ee499bd4bf3044513ffb88"
+            },
+            "observation": {
+              "address": "0xa7acc9a4ee0fa67b93ee499bd4bf3044513ffb88",
+              "is_proxy": true,
+              "implementation": "0x9338a4fdd2ac5c3981fd11fe5178f77fc0066997",
+              "impl_verified": false,
+              "impl_age_days": 29,
+              "impl_has_verified_abi": false
+            },
+            "latency_ms": 0.008
+          },
+          {
+            "step": 3,
+            "thought": "Static analysis is not conclusive here; simulate to see real asset movements.",
+            "tool": "simulate_tx",
+            "args": {},
+            "observation": {
+              "reverts": false,
+              "revert_reason": null,
+              "asset_changes": [
+                {
+                  "asset": "ETH",
+                  "from": "0x04313c4eb6ec032fdd44bae7c3892e11db12252d",
+                  "to": "0xa7acc9a4ee0fa67b93ee499bd4bf3044513ffb88",
+                  "amount": "10000000000000000"
+                },
+                {
+                  "asset": "0x9ae3e8e5df28fb36d4e020e267318b40af47f492",
+                  "from": "0x04313c4eb6ec032fdd44bae7c3892e11db12252d",
+                  "to": "0x161dc69f000ab7de05545af6e6be5ff00908da6d",
+                  "amount": "714429826057"
+                },
+                {
+                  "asset": "0x549dc46c03c21bb00fa9ea3fe546dae72c16511e",
+                  "from": "0x04313c4eb6ec032fdd44bae7c3892e11db12252d",
+                  "to": "0x161dc69f000ab7de05545af6e6be5ff00908da6d",
+                  "amount": "496046229632"
+                },
+                {
+                  "asset": "ETH",
+                  "from": "0xa7acc9a4ee0fa67b93ee499bd4bf3044513ffb88",
+                  "to": "0x161dc69f000ab7de05545af6e6be5ff00908da6d",
+                  "amount": "10000000000000000"
+                }
+              ],
+              "approval_changes": [],
+              "available": true,
+              "sim_ms": 1.517
+            },
+            "latency_ms": 1.534
+          },
+          {
+            "step": 4,
+            "thought": "Simulation sends assets somewhere the call never named; identify the destination.",
+            "tool": "lookup_address",
+            "args": {
+              "address": "0x161dc69f000ab7de05545af6e6be5ff00908da6d"
+            },
+            "observation": {
+              "address": "0x161dc69f000ab7de05545af6e6be5ff00908da6d",
+              "known": true,
+              "kind": "eoa",
+              "age_days": 8,
+              "tx_count": 3,
+              "verified": false,
+              "scam_listed": false,
+              "label": "",
+              "is_proxy": false,
+              "has_verified_abi": false,
+              "fresh": false,
+              "metadata_untrusted": {}
+            },
+            "latency_ms": 0.011
+          }
+        ],
+        "final": {
+          "raw_score": 0.9981,
+          "prob": 0.9981,
+          "evidence_decision": "BLOCK",
+          "proposed": null,
+          "decision": "BLOCK",
+          "verifier_notes": [],
+          "missing_evidence": [],
+          "cannot_assess": false,
+          "findings": [
+            {
+              "code": "UNKNOWN_SELECTOR",
+              "severity": 0.4,
+              "message": "interacts with an unrecognized function (0xac9650d8); intent cannot be verified before signing",
+              "source": "rules"
+            },
+            {
+              "code": "NATIVE_VALUE",
+              "severity": 0.1,
+              "message": "sends 10000000000000000 wei of native currency to 0xa7acc9a4ee0fa67b93ee499bd4bf3044513ffb88",
+              "source": "rules"
+            },
+            {
+              "code": "UNVERIFIED_TARGET",
+              "severity": 0.3,
+              "message": "unknown function on an unverified contract 0xa7acc9a4ee0fa67b93ee499bd4bf3044513ffb88",
+              "source": "lookup_address"
+            },
+            {
+              "code": "PROXY_IMPL_UNVERIFIED",
+              "severity": 0.5,
+              "message": "proxy 0xa7acc9a4ee0fa67b93ee499bd4bf3044513ffb88 delegates to unverified implementation 0x9338a4fdd2ac5c3981fd11fe5178f77fc0066997",
+              "source": "resolve_proxy"
+            },
+            {
+              "code": "HIDDEN_OUTFLOW",
+              "severity": 0.9,
+              "message": "simulation: 714429826057 of 0x9ae3e8e5df28fb36d4e020e267318b40af47f492 leaves the wallet to 0x161dc69f000ab7de05545af6e6be5ff00908da6d, which the call does not name",
+              "source": "simulate_tx"
+            },
+            {
+              "code": "HIDDEN_OUTFLOW",
+              "severity": 0.9,
+              "message": "simulation: 496046229632 of 0x549dc46c03c21bb00fa9ea3fe546dae72c16511e leaves the wallet to 0x161dc69f000ab7de05545af6e6be5ff00908da6d, which the call does not name",
+              "source": "simulate_tx"
+            }
+          ],
+          "finish_thought": "Evidence is sufficient to decide."
+        },
+        "usage": {
+          "tool_calls": 5,
+          "tool_attempts": 5,
+          "tool_failures": 0,
+          "latency_ms": 1.71
+        }
+      }
+    },
+    {
+      "id": "dex_approval_unlimited-01",
+      "category": "dex_approval_unlimited",
+      "label": "benign",
+      "decision": "ALLOW",
+      "trace": {
+        "planner": "policy",
+        "steps": [
+          {
+            "step": 0,
+            "thought": "Start by decoding what the calldata does.",
+            "tool": "decode_calldata",
+            "args": {},
+            "observation": {
+              "selector": "0x095ea7b3",
+              "function": "approve",
+              "signature": "approve(address,uint256)",
+              "args": {
+                "spender": "0x9b4c60fdb505a45030b2b964743af32c893bff37",
+                "amount": 115792089237316195423570985008687907853269984665640564039457584007913129639935
+              },
+              "known": true,
+              "decode_error": null,
+              "abi_source": "selector_db"
+            },
+            "latency_ms": 0.017
+          },
+          {
+            "step": 1,
+            "thought": "Check what the target address is (contract? verified? proxy?).",
+            "tool": "lookup_address",
+            "args": {
+              "address": "0xfc8df07413df4f73ef8c9fcd698014efb68fefd1"
+            },
+            "observation": {
+              "address": "0xfc8df07413df4f73ef8c9fcd698014efb68fefd1",
+              "known": true,
+              "kind": "contract",
+              "age_days": 2351,
+              "tx_count": 1000000,
+              "verified": true,
+              "scam_listed": false,
+              "label": "USDT token",
+              "is_proxy": false,
+              "has_verified_abi": false,
+              "fresh": false,
+              "metadata_untrusted": {
+                "name": "Tether USD",
+                "symbol": "USDT"
+              }
+            },
+            "latency_ms": 0.037
+          },
+          {
+            "step": 2,
+            "thought": "The spender decides who gets power over the assets; check its reputation.",
+            "tool": "lookup_address",
+            "args": {
+              "address": "0x9b4c60fdb505a45030b2b964743af32c893bff37"
+            },
+            "observation": {
+              "address": "0x9b4c60fdb505a45030b2b964743af32c893bff37",
+              "known": true,
+              "kind": "contract",
+              "age_days": 1434,
+              "tx_count": 1000000,
+              "verified": true,
+              "scam_listed": false,
+              "label": "Uniswap V2 Router",
+              "is_proxy": false,
+              "has_verified_abi": false,
+              "fresh": false,
+              "metadata_untrusted": {
+                "name": "Uniswap V2 Router"
+              }
+            },
+            "latency_ms": 0.041
+          }
+        ],
+        "final": {
+          "raw_score": 0.12,
+          "prob": 0.12,
+          "evidence_decision": "ALLOW",
+          "proposed": null,
+          "decision": "ALLOW",
+          "verifier_notes": [],
+          "missing_evidence": [],
+          "cannot_assess": false,
+          "findings": [
+            {
+              "code": "UNLIMITED_APPROVAL_TRUSTED",
+              "severity": 0.12,
+              "message": "grants an effectively unlimited token allowance to 0x9b4c60fdb505a45030b2b964743af32c893bff37 (amount~MAX_UINT256) (spender is verified: Uniswap V2 Router)",
+              "source": "assess"
+            }
+          ],
+          "finish_thought": "Evidence is sufficient to decide."
+        },
+        "usage": {
+          "tool_calls": 3,
+          "tool_attempts": 3,
+          "tool_failures": 0,
+          "latency_ms": 0.167
+        }
+      }
+    }
+  ],
+  "representative_failures": [
+    {
+      "id": "new_dapp_bounded-01",
+      "category": "new_dapp_bounded",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: new/unverified legitimate counterparty",
+      "codes": [
+        "UNVERIFIED_SPENDER"
+      ],
+      "prob": 0.44,
+      "trace": {
+        "planner": "policy",
+        "steps": [
+          {
+            "step": 0,
+            "thought": "Start by decoding what the calldata does.",
+            "tool": "decode_calldata",
+            "args": {},
+            "observation": {
+              "selector": "0x095ea7b3",
+              "function": "approve",
+              "signature": "approve(address,uint256)",
+              "args": {
+                "spender": "0x320b2749571dc90fad48a5682b994a54ecc9aa4d",
+                "amount": 50000000
+              },
+              "known": true,
+              "decode_error": null,
+              "abi_source": "selector_db"
+            },
+            "latency_ms": 0.015
+          },
+          {
+            "step": 1,
+            "thought": "Check what the target address is (contract? verified? proxy?).",
+            "tool": "lookup_address",
+            "args": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3"
+            },
+            "observation": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3",
+              "known": true,
+              "kind": "contract",
+              "age_days": 1935,
+              "tx_count": 1000000,
+              "verified": true,
+              "scam_listed": false,
+              "label": "USDC token",
+              "is_proxy": true,
+              "has_verified_abi": false,
+              "fresh": false,
+              "metadata_untrusted": {
+                "name": "USD Coin",
+                "symbol": "USDC"
+              }
+            },
+            "latency_ms": 0.05
+          },
+          {
+            "step": 2,
+            "thought": "Target is a proxy: find the code that will actually run.",
+            "tool": "resolve_proxy",
+            "args": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3"
+            },
+            "observation": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3",
+              "is_proxy": true,
+              "implementation": "0x5b6386984383d531b53a829a58820d8d01370933",
+              "impl_verified": true,
+              "impl_age_days": 900,
+              "impl_has_verified_abi": false
+            },
+            "latency_ms": 0.008
+          },
+          {
+            "step": 3,
+            "thought": "The spender decides who gets power over the assets; check its reputation.",
+            "tool": "lookup_address",
+            "args": {
+              "address": "0x320b2749571dc90fad48a5682b994a54ecc9aa4d"
+            },
+            "observation": {
+              "address": "0x320b2749571dc90fad48a5682b994a54ecc9aa4d",
+              "known": true,
+              "kind": "contract",
+              "age_days": 59,
+              "tx_count": 36,
+              "verified": false,
+              "scam_listed": false,
+              "label": "",
+              "is_proxy": false,
+              "has_verified_abi": false,
+              "fresh": false,
+              "metadata_untrusted": {
+                "name": "Yield Garden"
+              }
+            },
+            "latency_ms": 0.023
+          }
+        ],
+        "final": {
+          "raw_score": 0.44,
+          "prob": 0.44,
+          "evidence_decision": "ESCALATE",
+          "proposed": null,
+          "decision": "ESCALATE",
+          "verifier_notes": [],
+          "missing_evidence": [],
+          "cannot_assess": false,
+          "findings": [
+            {
+              "code": "TOKEN_APPROVAL",
+              "severity": 0.2,
+              "message": "grants a bounded token allowance of 50000000 to 0x320b2749571dc90fad48a5682b994a54ecc9aa4d",
+              "source": "rules"
+            },
+            {
+              "code": "UNVERIFIED_SPENDER",
+              "severity": 0.3,
+              "message": "spender 0x320b2749571dc90fad48a5682b994a54ecc9aa4d is an unverified contract",
+              "source": "lookup_address"
+            }
+          ],
+          "finish_thought": "Evidence is sufficient to decide."
+        },
+        "usage": {
+          "tool_calls": 4,
+          "tool_attempts": 4,
+          "tool_failures": 0,
+          "latency_ms": 0.18
+        }
+      }
+    },
+    {
+      "id": "transfer_to_scam-12",
+      "category": "transfer_to_scam",
+      "label": "malicious",
+      "decision": "ALLOW",
+      "failure_category": "FN: attacker with clean reputation",
+      "codes": [],
+      "prob": 0.0,
+      "trace": {
+        "planner": "policy",
+        "steps": [
+          {
+            "step": 0,
+            "thought": "Start by decoding what the calldata does.",
+            "tool": "decode_calldata",
+            "args": {},
+            "observation": {
+              "selector": "0xa9059cbb",
+              "function": "transfer",
+              "signature": "transfer(address,uint256)",
+              "args": {
+                "to": "0x9486e3be300af3a1578e6a2cd4f9fc75be8ea020",
+                "amount": 619782966909
+              },
+              "known": true,
+              "decode_error": null,
+              "abi_source": "selector_db"
+            },
+            "latency_ms": 0.012
+          },
+          {
+            "step": 1,
+            "thought": "Check what the target address is (contract? verified? proxy?).",
+            "tool": "lookup_address",
+            "args": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3"
+            },
+            "observation": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3",
+              "known": true,
+              "kind": "contract",
+              "age_days": 1935,
+              "tx_count": 1000000,
+              "verified": true,
+              "scam_listed": false,
+              "label": "USDC token",
+              "is_proxy": true,
+              "has_verified_abi": false,
+              "fresh": false,
+              "metadata_untrusted": {
+                "name": "USD Coin",
+                "symbol": "USDC"
+              }
+            },
+            "latency_ms": 0.029
+          },
+          {
+            "step": 2,
+            "thought": "Target is a proxy: find the code that will actually run.",
+            "tool": "resolve_proxy",
+            "args": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3"
+            },
+            "observation": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3",
+              "is_proxy": true,
+              "implementation": "0x5b6386984383d531b53a829a58820d8d01370933",
+              "impl_verified": true,
+              "impl_age_days": 900,
+              "impl_has_verified_abi": false
+            },
+            "latency_ms": 0.007
+          },
+          {
+            "step": 3,
+            "thought": "The recipient decides who gets power over the assets; check its reputation.",
+            "tool": "lookup_address",
+            "args": {
+              "address": "0x9486e3be300af3a1578e6a2cd4f9fc75be8ea020"
+            },
+            "observation": {
+              "address": "0x9486e3be300af3a1578e6a2cd4f9fc75be8ea020",
+              "known": true,
+              "kind": "eoa",
+              "age_days": 301,
+              "tx_count": 688,
+              "verified": false,
+              "scam_listed": false,
+              "label": "",
+              "is_proxy": false,
+              "has_verified_abi": false,
+              "fresh": false,
+              "metadata_untrusted": {}
+            },
+            "latency_ms": 0.008
+          }
+        ],
+        "final": {
+          "raw_score": 0.0,
+          "prob": 0.0,
+          "evidence_decision": "ALLOW",
+          "proposed": null,
+          "decision": "ALLOW",
+          "verifier_notes": [],
+          "missing_evidence": [],
+          "cannot_assess": false,
+          "findings": [],
+          "finish_thought": "Evidence is sufficient to decide."
+        },
+        "usage": {
+          "tool_calls": 4,
+          "tool_attempts": 4,
+          "tool_failures": 0,
+          "latency_ms": 0.112
+        }
+      }
+    }
+  ]
+}

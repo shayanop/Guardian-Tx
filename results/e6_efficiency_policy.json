@@ -1,0 +1,147 @@
+{
+  "planner": "policy",
+  "efficiency": {
+    "full_dynamic": {
+      "tool_calls_mean": 3.4444444444444446,
+      "tool_calls_max": 6,
+      "latency_ms_mean": 0.33290038314176246,
+      "latency_ms_p95": 1.324
+    },
+    "fixed_order": {
+      "tool_calls_mean": 4.942528735632184,
+      "tool_calls_max": 7,
+      "latency_ms_mean": 1.3770344827586207,
+      "latency_ms_p95": 1.576
+    }
+  },
+  "reliability": [
+    {
+      "fault_rate": 0.0,
+      "retries": 0,
+      "f1": [
+        0.9655172413793102,
+        0.0
+      ],
+      "decision_agreement_with_fault_free": [
+        1.0,
+        0.0
+      ],
+      "escalation_rate": [
+        0.0574712643678161,
+        0.0
+      ]
+    },
+    {
+      "fault_rate": 0.0,
+      "retries": 2,
+      "f1": [
+        0.9655172413793102,
+        0.0
+      ],
+      "decision_agreement_with_fault_free": [
+        1.0,
+        0.0
+      ],
+      "escalation_rate": [
+        0.0574712643678161,
+        0.0
+      ]
+    },
+    {
+      "fault_rate": 0.1,
+      "retries": 0,
+      "f1": [
+        0.8903632396957573,
+        0.009259972506042269
+      ],
+      "decision_agreement_with_fault_free": [
+        0.8326947637292464,
+        0.027182371205354692
+      ],
+      "escalation_rate": [
+        0.20689655172413793,
+        0.025124285533724144
+      ]
+    },
+    {
+      "fault_rate": 0.1,
+      "retries": 2,
+      "f1": [
+        0.9644112651577991,
+        0.0019156070076204613
+      ],
+      "decision_agreement_with_fault_free": [
+        0.9974457215836526,
+        0.0022120699968951364
+      ],
+      "escalation_rate": [
+        0.06002554278416347,
+        0.0022120699968951165
+      ]
+    },
+    {
+      "fault_rate": 0.2,
+      "retries": 0,
+      "f1": [
+        0.8283720585677569,
+        0.006334925566631005
+      ],
+      "decision_agreement_with_fault_free": [
+        0.6564495530012772,
+        0.013455496491510526
+      ],
+      "escalation_rate": [
+        0.3665389527458493,
+        0.015484489978265828
+      ]
+    },
+    {
+      "fault_rate": 0.2,
+      "retries": 2,
+      "f1": [
+        0.9600100082489864,
+        0.0037919865679860755
+      ],
+      "decision_agreement_with_fault_free": [
+        0.9846743295019157,
+        0.007662835249042155
+      ],
+      "escalation_rate": [
+        0.07151979565772669,
+        0.005852587094451904
+      ]
+    },
+    {
+      "fault_rate": 0.3,
+      "retries": 0,
+      "f1": [
+        0.798455165367273,
+        0.003323118507086782
+      ],
+      "decision_agreement_with_fault_free": [
+        0.5351213282247764,
+        0.013455496491510526
+      ],
+      "escalation_rate": [
+        0.47509578544061304,
+        0.006636209990685377
+      ]
+    },
+    {
+      "fault_rate": 0.3,
+      "retries": 2,
+      "f1": [
+        0.9480909480909481,
+        0.0037152526974880387
+      ],
+      "decision_agreement_with_fault_free": [
+        0.9565772669220944,
+        0.0022120699968951364
+      ],
+      "escalation_rate": [
+        0.0983397190293742,
+        0.0022120699968951126
+      ]
+    }
+  ]
+}

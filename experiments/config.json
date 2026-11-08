@@ -1,0 +1,37 @@
+{
+  "seed": 2026,
+  "max_false_block_dev": 0.02,
+  "fault_rates": [
+    0.0,
+    0.1,
+    0.2,
+    0.3
+  ],
+  "fault_runs": 3,
+  "llm": {
+    "providers_in_fallback_order": [
+      "nim",
+      "groq"
+    ],
+    "order_env": "GUARDIANTX_PROVIDERS",
+    "nim": {
+      "key_env": "NVIDIA_API_KEY",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "model_env": "GUARDIANTX_MODEL",
+      "default_model": "meta/llama-3.3-70b-instruct"
+    },
+    "groq": {
+      "key_env": "GROQ_API_KEY",
+      "base_url": "https://api.groq.com/openai/v1",
+      "model_env": "GROQ_MODEL",
+      "default_model": "openai/gpt-oss-120b"
+    },
+    "temperature_env": "GUARDIANTX_TEMPERATURE",
+    "default_temperature": 0.2,
+    "top_p_env": "GUARDIANTX_TOP_P",
+    "default_top_p": 0.7,
+    "seed_env": "GUARDIANTX_SEED",
+    "runs": 3
+  },
+  "max_benign_escalation_dev": 0.1
+}
