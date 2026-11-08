@@ -185,6 +185,7 @@ The iteration history is in [docs/devlog.md](docs/devlog.md).
 ## Layout
 
 ```
+<<<<<<< HEAD
 guardiantx/   agent.py (loop, planners), tools.py, world.py, assess.py, guard.py (G1),
               calibration.py (G2), metrics.py, baselines.py (E2), llm.py, cli.py,
               plus Phase-1: contracts, decoder, signatures, encoding, rules, pipeline, simulator
@@ -204,3 +205,39 @@ the assessor's heuristics. That makes the agent's high scores optimistic. The
 results show the system works under controlled conditions, not on real mainnet
 traffic. The simulator models ERC-20/721 semantics and drainer sweeps, not the EVM.
 Trusted reputation fields (verification, scam lists) are assumed correct.
+=======
+guardiantx/      core package (contracts, decoder, signatures, simulator, rules, pipeline, llm, cli)
+data/            dataset builder + generated seed set
+eval/            evaluation harness (metrics, confusion matrix, per-category)
+tests/           decoder / rules / pipeline tests
+docs/            architecture, literature review, proposal
+docs/phase1/     Phase 1 report source + PDF build script
+```
+
+## Phase 1 report
+
+The submitted PDF (Deliverable A + B) is built from
+[docs/phase1/Phase1_source.html](docs/phase1/Phase1_source.html) with headless Chrome:
+
+```bash
+docs/phase1/build.sh --preview   # draft, shows unfinished sections
+docs/phase1/build.sh             # final: Phase1_GuardianTx_22I-0794.pdf
+```
+
+The final build stops and lists what is left if any section is unwritten or
+any cited figure is still flagged for verification.
+
+## Roadmap to the proposed system (Phase 2+)
+
+- LLM agent that *dynamically* chooses tools to investigate a transaction
+- Prompt-injection taxonomy + resilience eval over untrusted on-chain data
+- Calibrated confidence (ECE, Brier, risk–coverage) and principled abstention
+- Expand the corpus toward ~400 tx with held-out unseen attack types
+
+## Team
+
+| Member | Roll no. | Responsibilities |
+|---|---|---|
+| Syed Kalbe Raza (group head) | 22I-0794 | Agent orchestration and tools (G3); calibration and evaluation (G2) |
+| Shayan Ahmed | 22I-0822 | Injection taxonomy and resilience layer (G1); dataset and literature review |
+>>>>>>> aee3143f8d7104a13806f479e7b46e366fa01f59

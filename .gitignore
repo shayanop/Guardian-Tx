@@ -8,5 +8,9 @@ venv/
 .DS_Store
 docs/_phase1_combined.html
 docs/*.pdf
+<<<<<<< HEAD
 AI4015_Agentic_AI_Semester_Project_Phase2.md
 Claude.md
+=======
+docs/phase1/*.pdf
+>>>>>>> aee3143f8d7104a13806f479e7b46e366fa01f59

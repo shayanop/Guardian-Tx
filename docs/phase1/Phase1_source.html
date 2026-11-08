@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phase 1 — GuardianTx</title>
+<!--
+  HOW TO USE THIS FILE
+  - Every <div class="write"> ... </div> box is a section YOU write. Delete the whole
+    box (including the bullet notes) and put your own <p>...</p> paragraphs in its place.
+  - <span class="verify">...</span> marks a number not yet checked against the full paper.
+    Open the paper, confirm the number, then remove the span tags (keep the number).
+  - Build:  ./build.sh            (or ./build.sh G1-06 once a project code is assigned)
+    The build refuses to run while any write box or verify mark is left.
+-->
+<style>
+  @page { size: A4; margin: 20mm 18mm 20mm 18mm; }
+  :root { --ink:#1a1a1a; --navy:#16224a; --gold:#c9962b; --line:#c8ccd6; --soft:#f3f4f8; }
+  html, body { background:#fff; color:var(--ink); }
+  body { font-family: "Times New Roman", "Liberation Serif", Georgia, serif; font-size: 11.5pt; line-height: 1.42; margin:0; }
+  h1, h2, h3 { color: var(--navy); font-weight: bold; line-height:1.2; }
+  h1 { font-size: 17pt; margin: 0 0 4pt; border-bottom: 1.5pt solid var(--gold); padding-bottom: 4pt; }
+  h2 { font-size: 13.5pt; margin: 16pt 0 6pt; border-bottom: 0.75pt solid var(--gold); padding-bottom: 2pt; }
+  h3 { font-size: 12pt; margin: 12pt 0 4pt; }
+  p { margin: 0 0 7pt; text-align: justify; }
+  .pb { break-before: page; }
+  table { border-collapse: collapse; width: 100%; margin: 6pt 0 10pt; font-size: 9.5pt; line-height:1.3; }
+  th, td { border: 0.6pt solid var(--line); padding: 3pt 4pt; vertical-align: top; text-align: left; }
+  th { background: var(--navy); color: #fff; font-weight: bold; }
+  tr:nth-child(even) td { background: var(--soft); }
+  tr.base td { background: #fff6e0; }
+  table.cmp { font-size: 8.4pt; }
+  table.cmp td:first-child { white-space: nowrap; }
+  .caption { font-size: 9.5pt; color:#444; text-align:center; margin: 2pt 0 10pt; }
+  .ref p { text-align:left; padding-left: 2.2em; text-indent: -2.2em; font-size: 10.5pt; margin-bottom: 4pt; }
+  .ref a, a { color: var(--navy); word-break: break-all; }
+  figure { margin: 6pt 0; text-align:center; }
+  figure img { max-width: 100%; border: 0.6pt solid var(--line); }
+  code { font-family: "DejaVu Sans Mono", monospace; font-size: 9.5pt; }
+
+  /* cover */
+  .cover { text-align:center; padding-top: 40mm; }
+  .cover .uni { font-size: 14pt; color: var(--navy); font-weight: bold; letter-spacing: .5pt; }
+  .cover .course { font-size: 13pt; margin-top: 4pt; }
+  .cover .phase { font-size: 12pt; color: var(--gold); font-weight:bold; margin-top: 2pt; }
+  .cover .title { font-size: 20pt; color: var(--navy); font-weight: bold; margin: 26mm 10mm 6mm; line-height:1.25; }
+  .cover table { width: 75%; margin: 18mm auto 0; font-size: 11.5pt; }
+  .cover td { padding: 5pt 8pt; }
+  .cover td:first-child { font-weight:bold; width: 38%; }
+
+  /* author workspace — must all be gone before the final build */
+  .write { border: 1.2pt dashed #c0392b; background: #fff8f6; padding: 6pt 9pt; margin: 6pt 0 10pt; break-inside: avoid; font-family: Arial, Helvetica, sans-serif; font-size: 9pt; line-height:1.35; }
+  .write::before { content: "✍ WRITE IN YOUR OWN WORDS — " attr(data-len) "  (delete this box when done)"; display:block; font-weight:bold; color:#c0392b; margin-bottom: 3pt; }
+  .write ul { margin: 2pt 0 0 14pt; padding:0; }
+  .write li { margin: 1pt 0; }
+  .write b { color:#333; }
+  .verify { background: #fff1a8; outline: 0.6pt dotted #b58900; }
+</style>
+</head>
+<body>
+
+<!-- ============================== COVER ============================== -->
+<section class="cover">
+  <div class="uni">National University of Computer &amp; Emerging Sciences</div>
+  <div class="course">AI4015 – Agentic Artificial Intelligence · Fall 2026</div>
+  <div class="phase">Semester Project – Phase 1</div>
+  <div class="title">GuardianTx: An Injection-Resilient Agent for Risk-Calibrated Pre-Signing Blockchain Transaction Defense</div>
+  <div>Deliverable A – Literature Review &amp; Research Gaps<br>Deliverable B – Project Proposal</div>
+  <table>
+    {{PROJECT_CODE_ROW}}
+    <tr><td>Selected seed</td><td>Approved own idea</td></tr>
+    <tr><td>Group head</td><td>Syed Kalbe Raza (22I-0794)</td></tr>
+    <tr><td>Member</td><td>Shayan Ahmed (22I-0822)</td></tr>
+    <tr><td>Repository (Deliverable C)</td><td><a href="https://github.com/shayanop/Guardian-Tx">github.com/shayanop/Guardian-Tx</a></td></tr>
+  </table>
+</section>
+
+<!-- ============================ DELIVERABLE A ============================ -->
+<section class="pb">
+<h1>Deliverable A – Literature Review &amp; Research Gaps</h1>
+
+<h2>1. Base Paper</h2>
+<p><b>Reference.</b> N. Ruaro, F. Gritti, D. Meng, R. McLaughlin, I. Grishchenko, C. Kruegel, and G. Vigna, “Approve Once, Regret Forever: On the Exploitation of Ethereum’s Approve-TransferFrom Ecosystem,” in <i>Proc. 34th USENIX Security Symp.</i>, Seattle, WA, USA, Aug. 2025, pp. 1281–1298 [1].</p>
+<p><b>Proof of ranking.</b> USENIX Security Symposium is ranked <b>A*</b> in the ICORE2026 conference rankings (Fig. 1).</p>
+<figure>
+  <img src="icore_usenix.png" alt="ICORE portal search result showing Usenix Security Symposium ranked A* in ICORE2026">
+  <div class="caption">Fig. 1. ICORE Conference Portal entry for USENIX Security (source ICORE2026, rank A*), accessed 3 Nov 2026.</div>
+</figure>
+
+<h3>1.1 Why we selected it</h3>
+<div class="write" data-len="~80–120 words">
+<ul>
+<li>Most recent top-venue (A*) study of the ERC-20/721 approve → <code>transferFrom</code> mechanism, the same surface GuardianTx guards (<code>approve</code>, <code>setApprovalForAll</code>, <code>permit</code>, <code>transferFrom</code>)</li>
+<li>Gives: a precise threat model (ACT), a concrete system to compare against (Osprey), real-world impact numbers</li>
+<li>Brief requires the base paper's method to be usable as a comparison point → Osprey's ACT detection on the approve/transferFrom part of our corpus</li>
+</ul>
+</div>
+
+<h3>1.2 Problem, method, data and key results</h3>
+<div class="write" data-len="~120–180 words">
+<ul>
+<li><b>Problem:</b> after an approval, the approved app can call <code>transferFrom</code>; if an attacker controls that call's parameters → steals assets of <i>every</i> user who approved the app. Authors name it ACT (Approved Controllable TransferFrom); &gt;$65M losses already</li>
+<li><b>Method:</b> Osprey, end-to-end: detects ACT-vulnerable contracts + automatically generates proof-of-concept exploits. <i>Read the paper's design section and describe the analysis technique yourself.</i></li>
+<li><b>Data:</b> scan across the entire Ethereum ecosystem</li>
+<li><b>Results:</b> 32,582 potentially vulnerable contracts; 410 confirmed exploitable (at time of writing); previously unknown attack vectors threatening &gt;$3.4M</li>
+</ul>
+</div>
+
+<h3>1.3 Limitations</h3>
+<div class="write" data-len="~80–120 words — keep author-stated and your own separate">
+<ul>
+<li><b>Author-stated:</b> read the paper's discussion/limitations section and note 1–2 points (not verified here)</li>
+<li><b>Ours:</b> contract-side and offline → serves auditors/developers, not a user at the moment of signing</li>
+<li>No per-transaction risk score, no confidence, no human escalation</li>
+<li>Covers only the ACT class (not permit phishing, NFT operator approvals, address poisoning)</li>
+<li>No LLM component → prompt injection out of scope</li>
+<li>Check: is Osprey's code released? Affects how you compare against it</li>
+</ul>
+</div>
+
+<h3>1.4 How GuardianTx builds on, compares against, and goes beyond it</h3>
+<div class="write" data-len="~80–120 words">
+<ul>
+<li><b>Builds on:</b> same approve/transferFrom threat model; ACT patterns feed our malicious corpus</li>
+<li><b>Compares against:</b> Osprey-style ACT detection on the approve/transferFrom subset of our corpus</li>
+<li><b>Goes beyond:</b> user-side and pre-signing; dynamic multi-tool investigation (decode, simulate, allowance, proxy); calibrated score + ESCALATE band; injection-resilient reasoning layer</li>
+</ul>
+</div>
+
+<h2>2. Cross-Paper Comparison Table</h2>
+<p>Row 1 (★, shaded) is the base paper. Numbers are taken from each paper’s published version.</p>
+<table class="cmp">
+<tr><th>#</th><th>Title (short)</th><th>Year &amp; Venue</th><th>Dataset / Benchmark</th><th>Method / Architecture</th><th>Eval. Metrics</th><th>Key Results</th><th>Limitation / Gap</th></tr>
+<tr class="base"><td>1 ★</td><td>Approve Once, Regret Forever (Osprey) [1]</td><td>2025, USENIX Security (A*)</td><td>Ecosystem-wide Ethereum contract scan</td><td>ACT vulnerability detection + automatic PoC exploit generation</td><td># flagged, # exploitable, USD at risk</td><td>32,582 flagged; 410 exploitable; &gt;$3.4M threatened</td><td>Offline, contract-side; no user-side decision at signing</td></tr>
+<tr><td>2</td><td>DeepTx [2]</td><td>2025, ASE (Tool Demo)</td><td>Authors’ own phishing tx set</td><td>Pre-sign simulation; behaviour/context/UI features; multi-LLM consensus + self-reflection</td><td>Precision, recall</td><td>“High” P/R (no figures in abstract)</td><td>No injection evaluation; no calibration; fixed pipeline</td></tr>
+<tr><td>3</td><td>Agent Security Bench [3]</td><td>2025, ICLR</td><td>10 scenarios, 10 agents, 400+ tools, 13 LLMs</td><td>Benchmark of 27 attack/defense types (DPI, IPI, memory poisoning, PoT backdoor, mixed)</td><td>Attack success rate + 6 others</td><td>Highest avg. ASR 84.30%; defenses of limited effect</td><td>General agents; no transaction/blockchain setting</td></tr>
+<tr><td>4</td><td>Drainer-as-a-Service [4]</td><td>2025, ACM IMC</td><td>Ethereum, Mar 2023–Apr 2025</td><td>Snowball sampling over profit-sharing transactions</td><td>USD drained, # victims</td><td>~$135M drained; <span class="verify">76,582</span> victims</td><td>Measurement only; builds no defense</td></tr>
+<tr><td>5</td><td>Payload-based Tx Phishing [5]</td><td>2025, NDSS</td><td>5,000-tx ground truth; 300-day Ethereum scan</td><td>Rule-based multi-dimensional detection</td><td>Accuracy</td><td>&gt;99% accuracy; 130,637 phishing tx ($341.9M); 1,726 addresses reported</td><td>Hand-crafted rules; no calibration or abstention</td></tr>
+<tr><td>6</td><td>Blockchain Address Poisoning [6]</td><td>2025, USENIX Security</td><td>Ethereum + BSC, 2-year window</td><td>Detection system + measurement + attacker clustering</td><td># attacks, # victims, USD lost</td><td>270M attacks on 17M victims (13× prior); ≥$83.8M lost</td><td>Single attack type; measurement, not prevention</td></tr>
+<tr><td>7</td><td>PROXiFY [7]</td><td>2025, ASE (Tool Demo)</td><td>High-confidence proxy benchmark</td><td>Bytecode-only proxy detection and classification</td><td>Precision, recall</td><td><span class="verify">98.6% P, 97.1% R</span></td><td>Proxy detection only</td></tr>
+<tr><td>8</td><td>Agent4Vul [8]</td><td>2025, Sci. China Inf. Sci.</td><td>Contract source + bytecode CFGs</td><td>Multimodal LLM agents (comments + vectors)</td><td>F1</td><td><span class="verify">+3.61–16.32% F1</span> over AI baselines</td><td>Audit-time; no injection robustness</td></tr>
+<tr><td>9</td><td>LLM-SmartAudit [9]</td><td>2025, IEEE TSE</td><td>Common-vuln benchmark, real projects, CVE set</td><td>LLM-powered multi-agent detection</td><td>Accuracy, CVEs found</td><td><span class="verify">98% acc.; 12/13 CVEs</span></td><td>Audit-time; no calibrated per-tx risk</td></tr>
+<tr><td>10</td><td>Smart-LLaMA-DPO [10]</td><td>2025, ISSTA (PACMSE)</td><td>4 vuln types + machine-unauditable, with explanations</td><td>LLaMA-3.1-8B: continual pre-training + SFT + DPO</td><td>F1, accuracy</td><td><span class="verify">+10.43% F1, +7.87% acc.</span></td><td>Detection + explanation; no transaction risk</td></tr>
+<tr><td>11</td><td>Trust or Escalate [11]</td><td>2025, ICLR</td><td>Pairwise LLM-judge data incl. Chatbot Arena subset</td><td>Selective evaluation; Simulated Annotators; cascaded escalation</td><td>Human agreement, coverage</td><td>&gt;80% guaranteed agreement at ~80% coverage</td><td>LLM-judge setting, not blockchain risk</td></tr>
+</table>
+
+<h2>3. Critical Summaries</h2>
+
+<h3>Paper 1 (★ base) — Approve Once, Regret Forever [1]</h3>
+<div class="write" data-len="150–250 words — Problem, Method, Data, Results, Limitations, Relevance">
+<ul>
+<li>Condense §1 above into one critical summary; do not just say “see §1”, because the brief wants a summary for every paper</li>
+<li>Six elements: ACT problem → Osprey → Ethereum-wide scan → 32,582 / 410 / &gt;$3.4M (&gt;$65M historical) → offline, contract-side, ACT-only → anchor of our threat model</li>
+</ul>
+</div>
+
+<h3>Paper 2 — DeepTx [2]</h3>
+<div class="write" data-len="150–250 words">
+<ul>
+<li><b>Problem:</b> Web3 phishing via deceptive contract logic, malicious front-end scripts, token-approval patterns; users can't read what they sign</li>
+<li><b>Method:</b> simulates pending tx before confirmation; extracts behaviour, context, UI features; several LLMs reason about intent; consensus + self-reflection → explainable decision</li>
+<li><b>Data:</b> authors' own phishing dataset (check size/composition in paper)</li>
+<li><b>Results:</b> “high precision and recall”; abstract gives no numbers (check paper body)</li>
+<li><b>Limitations (yours):</b> short tool-demo evaluation; LLMs read attacker-controlled data but no injection test; categorical output, no calibration/abstention; fixed pipeline; no public benchmark comparison</li>
+<li><b>Relevance:</b> closest existing system → our primary comparison; we differ on G1, G2, G3</li>
+</ul>
+</div>
+
+<h3>Paper 3 — Agent Security Bench (ASB) [3]</h3>
+<div class="write" data-len="150–250 words">
+<ul>
+<li><b>Problem:</b> no comprehensive evaluation of attacks/defenses on LLM-based agents</li>
+<li><b>Method:</b> 10 prompt-injection attacks, memory poisoning, Plan-of-Thought backdoor, 4 mixed attacks; 11 defenses (27 attack/defense types)</li>
+<li><b>Data:</b> 10 scenarios (e.g. e-commerce, autonomous driving, finance), 10 agents, 400+ tools, 13 LLM backbones; 7 metrics</li>
+<li><b>Results:</b> highest average ASR 84.30%; current defenses limited; new metric for utility–security balance</li>
+<li><b>Limitations:</b> general domains, no transaction signing; read the paper to judge how realistic its attack payloads are (don't claim this without checking)</li>
+<li><b>Relevance:</b> an LLM tx analyser is itself an attack surface → motivates G1, our 120-case injection taxonomy, ASR as our metric</li>
+</ul>
+</div>
+
+<h3>Paper 4 — Unmasking the Shadow Economy (Drainer-as-a-Service) [4]</h3>
+<div class="write" data-len="150–250 words">
+<ul>
+<li><b>Problem:</b> DaaS operators rent wallet-draining kits to affiliates for a profit share; never systematically measured</li>
+<li><b>Method:</b> snowball sampling seeded from known phishing addresses, following on-chain profit-sharing transactions; maps operators/affiliates</li>
+<li><b>Data:</b> Ethereum, March 2023 – April 2025</li>
+<li><b>Results:</b> ~$135M drained; victims <span class="verify">76,582</span>; three families (Angel, Inferno, Pink) ≈ <span class="verify">93.9%</span> of profits; common <span class="verify">20/80</span> operator–affiliate split. Confirm all three in the paper (ACM page was blocked to us)</li>
+<li><b>Limitations:</b> descriptive only, no defense; coverage depends on seed addresses → likely undercount of unseen families</li>
+<li><b>Relevance:</b> real attack patterns for our malicious corpus; scale justifies a user-side guard</li>
+</ul>
+</div>
+
+<h3>Paper 5 — Dissecting Payload-based Transaction Phishing [5]</h3>
+<div class="write" data-len="150–250 words">
+<ul>
+<li><b>Problem:</b> PTXPHISH: phishing through malicious payloads in contract interactions; &gt;$70M losses in 2023 reports</li>
+<li><b>Method:</b> taxonomy of 4 categories / 11 sub-categories; rule-based multi-dimensional detector</li>
+<li><b>Data:</b> first ground-truth dataset (5,000 phishing tx); 300-day large-scale detection run</li>
+<li><b>Results:</b> &gt;99% accuracy on ground truth; 130,637 phishing tx found (&gt;$341.9M losses); 1,726 addresses reported (42.7% of community reports); 2,539 on-chain alerts to 1,980 victims</li>
+<li><b>Limitations:</b> hand-crafted rules → may lag new tactics; accuracy-only headline (check whether P/R/F1 reported); no confidence or abstention; detects after the fact at scale, not at the user's signing moment</li>
+<li><b>Relevance:</b> same approve/permit surface we guard; anchors G2 (no calibration) and G3 (static rules vs dynamic agent)</li>
+</ul>
+</div>
+
+<h3>Paper 6 — Blockchain Address Poisoning [6]</h3>
+<div class="write" data-len="150–250 words">
+<ul>
+<li><b>Problem:</b> users copy addresses from history; attackers plant look-alike addresses so victims send funds to them</li>
+<li><b>Method:</b> detection system; 2-year measurement; clustering of attack entities; profitability/competition model; simulation of look-alike generation (finds a GPU-using group)</li>
+<li><b>Data:</b> Ethereum + BSC over two years (check exact dates in paper)</li>
+<li><b>Results:</b> 270M attacks on 17M victims, 13× more than previously reported; 6,633 incidents ≥ $83.8M lost</li>
+<li><b>Limitations:</b> one attack type; measurement/detection, countermeasures only discussed</li>
+<li><b>Relevance:</b> our baseline already implements an address-poisoning rule (<code>rules._looks_poisoned</code>); source of ground-truth patterns</li>
+</ul>
+</div>
+
+<h3>Paper 7 — PROXiFY [7]</h3>
+<div class="write" data-len="150–250 words">
+<ul>
+<li><b>Problem:</b> detecting/classifying proxy contracts, including inactive ones whose upgrade path could be reactivated</li>
+<li><b>Method:</b> bytecode-only analysis; no node, source code or customised EVM needed</li>
+<li><b>Data:</b> high-confidence proxy benchmark (check size)</li>
+<li><b>Results:</b> <span class="verify">98.6% precision, 97.1% recall</span></li>
+<li><b>Limitations:</b> single-purpose; tool-demo-length evaluation</li>
+<li><b>Relevance:</b> proxies hide the real implementation a user approves → our planned proxy-resolver tool</li>
+</ul>
+</div>
+
+<h3>Paper 8 — Agent4Vul [8]</h3>
+<div class="write" data-len="150–250 words">
+<ul>
+<li><b>Problem:</b> smart-contract vulnerability detection</li>
+<li><b>Method:</b> LLM agents generate code comments + feature vectors; fused with multimodal model over source code and bytecode CFGs</li>
+<li><b>Data:</b> check datasets in paper</li>
+<li><b>Results:</b> <span class="verify">+3.61% to +16.32% F1</span> over AI baselines; beats GPT-4o and o1</li>
+<li><b>Limitations:</b> audit-time; no adversarial/injection testing; no calibrated output</li>
+<li><b>Relevance:</b> evidence that agentic multi-step LLM analysis beats single models → supports G3</li>
+</ul>
+</div>
+
+<h3>Paper 9 — LLM-SmartAudit (multi-agent detection) [9]</h3>
+<div class="write" data-len="150–250 words">
+<ul>
+<li><b>Problem:</b> smart-contract vulnerability detection with LLMs</li>
+<li><b>Method:</b> multi-agent system; cooperating LLM agents analyse a contract and aggregate findings</li>
+<li><b>Data:</b> common-vulnerability benchmark, real-world project corpus, CVE set</li>
+<li><b>Results:</b> <span class="verify">98% accuracy on common vulns; 12 of 13 CVEs</span>; outperforms existing tools</li>
+<li><b>Limitations:</b> audit-time; no per-transaction calibrated risk; check whether cost/latency of multi-agent runs is reported</li>
+<li><b>Relevance:</b> multi-agent coordination patterns for our orchestrator (G3)</li>
+</ul>
+</div>
+
+<h3>Paper 10 — Smart-LLaMA-DPO [10]</h3>
+<div class="write" data-len="150–250 words">
+<ul>
+<li><b>Problem:</b> LLM explanations can be wrong even when the verdict is right (misread state-change order — confirm)</li>
+<li><b>Method:</b> LLaMA-3.1-8B; continual pre-training on contract code → SFT → DPO over paired good/poor explanations</li>
+<li><b>Data:</b> 4 vulnerability types + machine-unauditable cases, with labels, explanations, locations</li>
+<li><b>Results:</b> <span class="verify">+10.43% F1, +7.87% accuracy</span> over baselines</li>
+<li><b>Limitations:</b> few vuln types; check how explanation quality was judged</li>
+<li><b>Relevance:</b> our ALLOW/WARN/BLOCK/ESCALATE rationale must be faithful</li>
+</ul>
+</div>
+
+<h3>Paper 11 — Trust or Escalate [11]</h3>
+<div class="write" data-len="150–250 words">
+<ul>
+<li><b>Problem:</b> LLM judges trusted blindly; no guarantee they agree with humans</li>
+<li><b>Method:</b> selective evaluation; Simulated Annotators confidence estimate; Cascaded Selective Evaluation (cheap judge first, escalate to stronger model only when needed)</li>
+<li><b>Data:</b> pairwise preference evaluation incl. a Chatbot Arena subset</li>
+<li><b>Results:</b> guarantees &gt;80% human agreement at ~80% coverage on a Chatbot Arena subset using a Mistral-7B-led cascade, where GPT-4 alone almost never reaches 80%</li>
+<li><b>Limitations:</b> LLM-as-judge, not risk classification; check what assumptions the guarantee needs about test vs calibration data</li>
+<li><b>Relevance:</b> principled basis for our ESCALATE band and calibration (G2)</li>
+</ul>
+</div>
+
+<h2>4. Research-Gap Synthesis</h2>
+<div class="write" data-len="~200–300 words — one short paragraph per gap, cite papers by number">
+<ul>
+<li><b>G1:</b> no pre-signing defense that is injection-resilient. Osprey offline [1]; [4],[6] measure only; DeepTx uses LLMs but never tests injection [2]; ASB: 84.30% ASR [3] → unhardened LLM analyser = attack surface</li>
+<li><b>G2:</b> detectors report accuracy/F1 only; no ECE, Brier, abstention [2],[5],[8],[10]; [11] shows confidence must be estimated carefully and motivates escalation, but not for transactions; irreversible signing needs a calibrated score + abstain band</li>
+<li><b>G3:</b> each tool covers one slice: contracts [1], rules [5], proxies [7], fixed feature→LLM pipeline [2]; none chooses tools per transaction; agentic precedent [8],[9]; no tool-efficiency measurement vs non-agentic baseline</li>
+</ul>
+</div>
+
+<table>
+<tr><th style="width:20%">Gap</th><th style="width:18%">Supporting evidence</th><th style="width:31%">Proposed approach</th><th style="width:31%">How it will be measured</th></tr>
+<tr><td><b>G1</b> – No pre-signing, injection-resilient defense for the signer</td><td>[1], [2], [3], [4], [6]</td><td>Pre-sign agent that decodes/simulates the tx and sanitises untrusted on-chain text at a fixed boundary before any LLM reasoning</td><td>Detection P/R/F1 on benign/malicious tx; attack success rate over the 120-case, 5-category injection taxonomy</td></tr>
+<tr><td><b>G2</b> – Detectors are not calibrated and never abstain</td><td>[2], [5], [8], [10], [11]</td><td>Calibrated risk score with an ALLOW / WARN / BLOCK / ESCALATE abstention band</td><td>ECE, Brier score, risk–coverage curve, false-block rate, alongside P/R/F1</td></tr>
+<tr><td><b>G3</b> – No agent investigates the full pre-signing context</td><td>[1], [2], [5], [7]; agentic precedent [8], [9]</td><td>Agent selects tools per transaction (decode, simulate, allowance, proxy) vs. the fixed non-agentic baseline</td><td>F1 vs. baseline on held-out unseen attack types; tool calls per tx; latency; API cost</td></tr>
+</table>
+
+<h2>5. References</h2>
+<div class="ref">
+<p>[1] N. Ruaro, F. Gritti, D. Meng, R. McLaughlin, I. Grishchenko, C. Kruegel, and G. Vigna, “Approve once, regret forever: On the exploitation of Ethereum’s approve-transferFrom ecosystem,” in <i>Proc. 34th USENIX Security Symp.</i>, Seattle, WA, USA, 2025, pp. 1281–1298.</p>
+<p>[2] Y. Liu, X. Li, and Y. Li, “DeepTx: Real-time transaction risk analysis via multi-modal features and LLM reasoning,” in <i>Proc. 40th IEEE/ACM Int. Conf. Automated Software Engineering (ASE), Tool Demonstration Track</i>, 2025. [Online]. Available: arXiv:2510.18438</p>
+<p>[3] H. Zhang, J. Huang, K. Mei, Y. Yao, Z. Wang, C. Zhan, H. Wang, and Y. Zhang, “Agent Security Bench (ASB): Formalizing and benchmarking attacks and defenses in LLM-based agents,” in <i>Proc. Int. Conf. Learning Representations (ICLR)</i>, 2025.</p>
+<p>[4] B. He, Y. Hu, Z. Chen, Y. Chen, T. Yu, R. Chang, L. Wu, and Y. Zhou, “Unmasking the shadow economy: A deep dive into drainer-as-a-service phishing on Ethereum,” in <i>Proc. ACM Internet Measurement Conf. (IMC)</i>, 2025, pp. 430–444, doi: 10.1145/3730567.3764476.</p>
+<p>[5] Z. Chen, Y. Hu, B. He, D. Luo, L. Wu, and Y. Zhou, “Dissecting payload-based transaction phishing on Ethereum,” in <i>Proc. Network and Distributed System Security Symp. (NDSS)</i>, San Diego, CA, USA, 2025.</p>
+<p>[6] T. Tsuchiya, J.-D. Dong, K. Soska, and N. Christin, “Blockchain address poisoning,” in <i>Proc. 34th USENIX Security Symp.</i>, Seattle, WA, USA, 2025.</p>
+<p>[7] I. Qasse, M. Hamdaqa, and B. Þ. Jónsson, “PROXiFY: A bytecode analysis tool for detecting and classifying proxy contracts in Ethereum smart contracts,” in <i>Proc. 40th IEEE/ACM Int. Conf. Automated Software Engineering (ASE), Tool Demonstration Track</i>, 2025.</p>
+<p>[8] W. Jie, W. Qiu, H. Yang, M. Guo, X. Huang, T. Lei, Q. Zhang, H. Zheng, and Z. Zheng, “Agent4Vul: Multimodal LLM agents for smart contract vulnerability detection,” <i>Sci. China Inf. Sci.</i>, 2025, doi: 10.1007/s11432-024-4402-2.</p>
+<p>[9] Z. Wei, J. Sun, Y. Sun, Y. Liu, D. Wu, Z. Zhang, X. Zhang, M. Li, Y. Liu, C. Li, M. Wan, J. Dong, and L. Zhu, “Advanced smart contract vulnerability detection via LLM-powered multi-agent systems,” <i>IEEE Trans. Softw. Eng.</i>, vol. 51, no. 10, pp. 2830–2846, 2025, doi: 10.1109/TSE.2025.3597319.</p>
+<p>[10] L. Yu, Z. Huang, H. Yuan, S. Cheng, L. Yang, F. Zhang, C. Shen, J. Ma, J. Zhang, J. Lu, and C. Zuo, “Smart-LLaMA-DPO: Reinforced large language model for explainable smart contract vulnerability detection,” <i>Proc. ACM Softw. Eng.</i>, vol. 2, no. ISSTA, pp. 182–205, 2025, doi: 10.1145/3728878.</p>
+<p>[11] J. Jung, F. Brahman, and Y. Choi, “Trust or escalate: LLM judges with provable guarantees for human agreement,” in <i>Proc. Int. Conf. Learning Representations (ICLR)</i>, 2025.</p>
+</div>
+</section>
+
+<!-- ============================ DELIVERABLE B ============================ -->
+<section class="pb">
+<h1>Deliverable B – Project Proposal</h1>
+
+<h2>1. Project Title and Selected Seed</h2>
+<p><b>Title:</b> GuardianTx: An Injection-Resilient Agent for Risk-Calibrated Pre-Signing Blockchain Transaction Defense.<br>
+<b>Seed:</b> approved own idea.</p>
+
+<h2>2. Problem Statement and Motivation</h2>
+<div class="write" data-len="~200–280 words — real problem, target users, current limitations, why it matters">
+<ul>
+<li>Every dApp interaction ends in a signature; once broadcast it can't be undone</li>
+<li>What's signed is unreadable: target address + hex calldata</li>
+<li>Single <code>approve</code>/<code>permit</code> → unlimited token authority; <code>setApprovalForAll</code> → whole NFT collection; look-alike address → diverted transfer</li>
+<li>Scale: ACT &gt;$65M [1]; DaaS ~$135M [4]; PTXPHISH &gt;$341.9M over 300 days [5]; address poisoning 270M attempts, ≥$83.8M lost [6]</li>
+<li><b>Users:</b> ordinary wallet holders; integration point = wallet / browser extension at signing</li>
+<li><b>Current limits:</b> offline contract analysis [1]; measurement only [4],[6]; brittle rules [5]; DeepTx uncalibrated, not injection-tested, fixed pipeline [2]</li>
+</ul>
+</div>
+
+<h2>3. Base Paper and the Three Research Gaps</h2>
+<div class="write" data-len="~100–150 words">
+<ul>
+<li>Base paper [1]: Osprey, ACT detection + PoC generation; offline, contract-side</li>
+<li>G1 injection-resilient pre-sign defense; G2 calibration + abstention; G3 dynamic investigation (Deliverable A §4)</li>
+<li>How we go beyond: user side, multi-tool agent, calibrated ESCALATE band, hardened reasoning layer</li>
+</ul>
+</div>
+
+<h2>4. Target Product / System</h2>
+<div class="write" data-len="~80–120 words">
+<ul>
+<li>Wallet calls GuardianTx with an unsigned tx → returns ALLOW / WARN / BLOCK / ESCALATE + injection-safe rationale</li>
+<li>Delivered as a Python library + CLI (<code>python -m guardiantx.cli</code>); baseline already in repo</li>
+<li>Plus the LLM agent on top, a reproducible evaluation harness, and sanitised, safe-to-release datasets</li>
+</ul>
+</div>
+
+<h2>5. Agentic Justification</h2>
+<div class="write" data-len="~180–250 words — why not a script, a single LLM call, or RAG">
+<ul>
+<li><b>Data-dependent control flow:</b> unknown selector → resolve proxy → re-decode implementation → simulate; fixed pipelines ([2], [5], our baseline) can't branch</li>
+<li><b>Multi-step, stateful:</b> findings accumulate across tools before deciding</li>
+<li><b>Tool use on a live environment:</b> decoding, forked simulation, allowance reads, proxy resolution = actions, not document retrieval (so not RAG)</li>
+<li><b>Adversarial inputs:</b> on-chain strings can attack the reasoner; ASB 84.30% ASR [3] → resilience must be designed in</li>
+<li><b>Contrast:</b> single LLM call = no tools/branching; rules = can't adapt to unseen patterns; RAG = retrieves, doesn't investigate</li>
+</ul>
+</div>
+
+<h2>6. Goals and Success Criteria</h2>
+<div class="write" data-len="~60–100 words — development objectives">
+<ul>
+<li>(a) pre-sign agent orchestrating four tools; (b) injection-resilience layer; (c) calibrated score + abstention band; (d) evaluation harness + datasets</li>
+</ul>
+</div>
+<table>
+<tr><th style="width:10%">Gap</th><th>Measurable success criterion</th></tr>
+<tr><td>G1</td><td>Detection F1 at or above the baseline, with injection attack success rate below 10% across the 120-case taxonomy.</td></tr>
+<tr><td>G2</td><td>Lower ECE than the uncalibrated scorer, at an operating point with false-block rate below 5% on benign transactions.</td></tr>
+<tr><td>G3</td><td>Higher F1 than the non-agentic baseline on held-out unseen attack types, at acceptable tool-call cost and latency.</td></tr>
+</table>
+
+<h2>7. Data / Environment / Source (confirmed)</h2>
+<div class="write" data-len="~120–180 words — state these as confirmed, not 'to be selected'">
+<ul>
+<li><b>Environment:</b> local Foundry/Anvil fork; no real funds, no mainnet writes</li>
+<li><b>Corpus:</b> seed of 24 labelled benign/malicious tx already in repo (<code>data/seed_transactions.jsonl</code>, built by <code>data/build_seed.py</code>); expand to ~400 from documented drainer patterns (approval phishing, NFT operator approvals, proxy interactions, address poisoning) [1],[4],[5],[6]</li>
+<li>Hold out unseen attack types + contract variants for final evaluation</li>
+<li><b>Injection taxonomy:</b> 120 cases, 5 categories: authority spoofing, instruction override, tool-output laundering, role/reasoning spoofing, multilingual/encoded</li>
+<li><b>Release:</b> sanitised data and evaluation artefacts only; no deployable malicious contracts</li>
+</ul>
+</div>
+
+<h2>8. System Architecture</h2>
+<div class="write" data-len="~180–250 words — models, tools, state, context, memory, orchestration, human controls, environment">
+<ul>
+<li><b>Model/provider:</b> Anthropic Claude via <code>guardiantx/llm.py</code>; baseline needs no model</li>
+<li><b>Tools:</b> calldata decoder (built), Anvil simulator (built, optional), allowance inspector (planned), proxy resolver (planned)</li>
+<li><b>State/contracts:</b> <code>Transaction → DecodedCall → Finding[] → RiskReport</code> in <code>guardiantx/contracts.py</code>, all JSON-serialisable</li>
+<li><b>Memory:</b> per-transaction working state only; no long-term memory needed (say why)</li>
+<li><b>Orchestration:</b> baseline = fixed decode → rules → noisy-OR score; agent = loop picking tools until confident, then scoring</li>
+<li><b>Decision policy (current):</b> score ≥ 0.60 BLOCK; ≥ 0.25 WARN; else ALLOW; cannot assess → ESCALATE</li>
+<li><b>Human control:</b> ESCALATE routes to human review</li>
+<li><b>Injection defense:</b> <code>llm.sanitize()</code> at the tool-output → LLM boundary</li>
+</ul>
+</div>
+
+<h2>9. Methodology / Architecture Diagram</h2>
+<figure>
+<svg viewBox="0 0 700 560" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif" font-size="11">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#333"/></marker>
+    <marker id="arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#888"/></marker>
+  </defs>
+  <!-- input -->
+  <rect x="230" y="8" width="240" height="42" rx="6" fill="#16224a"/>
+  <text x="350" y="26" text-anchor="middle" fill="#fff" font-weight="bold">Unsigned transaction</text>
+  <text x="350" y="41" text-anchor="middle" fill="#fff" font-size="10">to, calldata, value, from, wallet context</text>
+
+  <!-- baseline column -->
+  <rect x="12" y="78" width="168" height="300" rx="6" fill="none" stroke="#888" stroke-dasharray="5 4"/>
+  <text x="96" y="348" text-anchor="middle" fill="#555" font-weight="bold">Baseline (built, Phase 1)</text>
+  <text x="96" y="363" text-anchor="middle" fill="#555" font-size="10">fixed path · no LLM</text>
+  <rect x="30" y="126" width="132" height="40" rx="4" fill="#eee" stroke="#888"/>
+  <text x="96" y="150" text-anchor="middle">Calldata decoder</text>
+  <rect x="30" y="196" width="132" height="48" rx="4" fill="#eee" stroke="#888"/>
+  <text x="96" y="216" text-anchor="middle">Rules engine</text>
+  <text x="96" y="232" text-anchor="middle" font-size="10">heuristics → noisy-OR</text>
+  <rect x="30" y="274" width="132" height="48" rx="4" fill="#eee" stroke="#888"/>
+  <text x="96" y="294" text-anchor="middle">Fixed thresholds</text>
+  <text x="96" y="310" text-anchor="middle" font-size="10">0.25 WARN · 0.60 BLOCK</text>
+  <line x1="96" y1="166" x2="96" y2="194" stroke="#888" stroke-width="1.4" marker-end="url(#arg)"/>
+  <line x1="96" y1="244" x2="96" y2="272" stroke="#888" stroke-width="1.4" marker-end="url(#arg)"/>
+  <path d="M230 40 L96 40 L96 124" fill="none" stroke="#888" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arg)"/>
+
+  <!-- agent box -->
+  <rect x="200" y="78" width="488" height="262" rx="8" fill="#f3f4f8" stroke="#16224a" stroke-width="1.4"/>
+  <text x="214" y="98" font-weight="bold" fill="#16224a">Proposed: LLM agent orchestrator (Claude) chooses the next tool</text>
+  <rect x="604" y="86" width="76" height="20" rx="10" fill="#2e7d32"/><text x="642" y="100" text-anchor="middle" fill="#fff" font-weight="bold" font-size="10">G3 dynamic</text>
+  <line x1="350" y1="50" x2="350" y2="76" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- tools -->
+  <g font-size="10.5">
+    <rect x="214" y="114" width="108" height="46" rx="4" fill="#fff" stroke="#16224a"/>
+    <text x="268" y="133" text-anchor="middle">Calldata decoder</text><text x="268" y="149" text-anchor="middle" font-size="9.5" fill="#2e7d32">built</text>
+    <rect x="332" y="114" width="108" height="46" rx="4" fill="#fff" stroke="#16224a"/>
+    <text x="386" y="133" text-anchor="middle">Anvil simulator</text><text x="386" y="149" text-anchor="middle" font-size="9.5" fill="#2e7d32">built (fork)</text>
+    <rect x="450" y="114" width="108" height="46" rx="4" fill="#fff" stroke="#16224a" stroke-dasharray="4 3"/>
+    <text x="504" y="133" text-anchor="middle">Allowance inspector</text><text x="504" y="149" text-anchor="middle" font-size="9.5" fill="#a15c00">planned</text>
+    <rect x="568" y="114" width="108" height="46" rx="4" fill="#fff" stroke="#16224a" stroke-dasharray="4 3"/>
+    <text x="622" y="133" text-anchor="middle">Proxy resolver</text><text x="622" y="149" text-anchor="middle" font-size="9.5" fill="#a15c00">planned</text>
+  </g>
+  <text x="445" y="176" text-anchor="middle" font-size="10" fill="#555">tool outputs carry untrusted on-chain data (token names, revert strings, metadata)</text>
+  <line x1="445" y1="180" x2="445" y2="196" stroke="#333" stroke-width="1.4" marker-end="url(#ar)"/>
+
+  <!-- sanitize -->
+  <rect x="214" y="198" width="462" height="38" rx="4" fill="#fdecea" stroke="#c0392b"/>
+  <text x="225" y="215" font-weight="bold" fill="#8e2a1f">Injection-resilience boundary: llm.sanitize()</text>
+  <text x="225" y="229" font-size="10" fill="#8e2a1f">untrusted text quoted and neutralised before any LLM reasoning</text>
+  <rect x="604" y="207" width="62" height="20" rx="10" fill="#c0392b"/><text x="635" y="221" text-anchor="middle" fill="#fff" font-weight="bold" font-size="10">G1</text>
+
+  <!-- state -->
+  <rect x="214" y="248" width="462" height="40" rx="4" fill="#fff" stroke="#16224a"/>
+  <text x="225" y="265" font-weight="bold">Working state (per transaction)</text>
+  <text x="225" y="280" font-size="10">Transaction → DecodedCall → Finding[] → RiskReport   (guardiantx/contracts.py)</text>
+  <path d="M676 268 C 700 268, 700 137, 678 137" fill="none" stroke="#2e7d32" stroke-width="1.4" marker-end="url(#ar)"/>
+  <text x="444" y="306" text-anchor="middle" font-size="10" fill="#2e7d32">loop: next tool depends on findings so far, until confident</text>
+  <line x1="445" y1="314" x2="445" y2="356" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- scorer -->
+  <rect x="300" y="358" width="290" height="44" rx="6" fill="#fff" stroke="#16224a" stroke-width="1.4"/>
+  <text x="445" y="376" text-anchor="middle" font-weight="bold">Risk scorer</text>
+  <text x="445" y="392" text-anchor="middle" font-size="10">calibrated probability + abstention band</text>
+  <rect x="596" y="370" width="40" height="20" rx="10" fill="#6a3fb5"/><text x="616" y="384" text-anchor="middle" fill="#fff" font-weight="bold" font-size="10">G2</text>
+
+  <!-- decision -->
+  <rect x="250" y="430" width="390" height="40" rx="6" fill="#16224a"/>
+  <text x="445" y="455" text-anchor="middle" fill="#fff" font-weight="bold">Decision: ALLOW / WARN / BLOCK / ESCALATE</text>
+  <line x1="445" y1="402" x2="445" y2="428" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+  <path d="M162 298 L190 298 L190 450 L248 450" fill="none" stroke="#888" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arg)"/>
+
+  <!-- outputs -->
+  <rect x="250" y="500" width="180" height="40" rx="6" fill="#fff" stroke="#16224a"/>
+  <text x="340" y="518" text-anchor="middle">Injection-safe rationale</text><text x="340" y="532" text-anchor="middle" font-size="10">shown to the user</text>
+  <rect x="460" y="500" width="180" height="40" rx="6" fill="#fff8e1" stroke="#c9962b"/>
+  <text x="550" y="518" text-anchor="middle" font-weight="bold">Human review</text><text x="550" y="532" text-anchor="middle" font-size="10">on ESCALATE</text>
+  <line x1="340" y1="470" x2="340" y2="498" stroke="#333" stroke-width="1.4" marker-end="url(#ar)"/>
+  <line x1="550" y1="470" x2="550" y2="498" stroke="#333" stroke-width="1.4" marker-end="url(#ar)"/>
+
+  <!-- legend -->
+  <g font-size="9.5" fill="#444">
+    <line x1="14" y1="500" x2="40" y2="500" stroke="#888" stroke-dasharray="4 3" stroke-width="1.4"/><text x="46" y="503">baseline path</text>
+    <line x1="14" y1="518" x2="40" y2="518" stroke="#333" stroke-width="1.4"/><text x="46" y="521">proposed agent path</text>
+    <rect x="14" y="530" width="26" height="12" fill="#fff" stroke="#16224a" stroke-dasharray="4 3"/><text x="46" y="540">planned for Phase 2</text>
+  </g>
+</svg>
+<div class="caption">Fig. 2. GuardianTx architecture. The dashed left column is the Phase-1 non-agentic baseline; the shaded box is the proposed agent. Badges mark where G1, G2 and G3 are addressed.</div>
+</figure>
+<div class="write" data-len="~40–70 words — explain how the baseline differs">
+<ul>
+<li>Baseline: decoder → rules → noisy-OR → fixed thresholds; no simulation in the decision loop, no tool choice, no LLM</li>
+<li>Agent: chooses tools per tx, sanitised LLM reasoning, calibrated scorer with ESCALATE</li>
+</ul>
+</div>
+
+<h2>10. Baselines</h2>
+<div class="write" data-len="~80–120 words">
+<ul>
+<li><b>B1 — non-agentic rules baseline (built):</b> calldata decoding + heuristics, noisy-OR score; results below</li>
+<li><b>B2 — base paper (Osprey):</b> ACT detection on the approve/transferFrom subset</li>
+<li><b>B3 — single-LLM-call classifier (optional):</b> isolates the agent's gain over a naive LLM</li>
+<li>Note the 3 seed misses: bounded gasless permit, bare native-value send, <code>transferFrom</code> pull → cases needing context the rules lack</li>
+</ul>
+</div>
+<table>
+<tr><th>Metric (24-tx seed set, positive = BLOCK/ESCALATE)</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>False-block rate</th></tr>
+<tr><td>B1 rules baseline (<code>eval/evaluate.py</code>)</td><td>0.875</td><td>1.000</td><td>0.750</td><td>0.857</td><td>0.000</td></tr>
+</table>
+
+<h2>11. Research Questions and Hypotheses</h2>
+<div class="write" data-len="one RQ + one hypothesis per gap — one sentence each">
+<ul>
+<li><b>G1:</b> does a sanitisation boundary keep detection quality while resisting injection? → ASR &lt; 10% with ≤ 1 F1 point lost</li>
+<li><b>G2:</b> does calibrated scoring with abstention lower false blocks at fixed recall? → ECE and false-block rate both drop at equal recall</li>
+<li><b>G3:</b> does dynamic tool use beat the fixed baseline on unseen attacks? → agent F1 on held-out types &gt; baseline F1</li>
+</ul>
+</div>
+
+<h2>12. Evaluation Plan</h2>
+<div class="write" data-len="~120–180 words — set, metrics, comparisons, ablations, system measures">
+<ul>
+<li><b>Set:</b> held-out split of the ~400-tx corpus (unseen types/variants) + 120 injection cases</li>
+<li><b>Detection:</b> P, R, F1, accuracy, confusion matrix (harness exists: <code>eval/evaluate.py</code>)</li>
+<li><b>Calibration:</b> ECE, Brier, risk–coverage curve, false-block rate</li>
+<li><b>Injection:</b> ASR per taxonomy category</li>
+<li><b>System:</b> tool calls per tx, latency, API cost</li>
+<li><b>Comparisons:</b> agent vs B1, B2, B3</li>
+<li><b>Ablations:</b> −simulation, −sanitisation, −calibration, fixed tool order</li>
+</ul>
+</div>
+
+<h2>13. Milestones and Feasibility</h2>
+<table>
+<tr><th style="width:10%">Stage</th><th>Deliverable</th><th style="width:16%">Status</th></tr>
+<tr><td>M1</td><td>Rules baseline, seed dataset, evaluation harness, tests</td><td>Done</td></tr>
+<tr><td>M2</td><td>Corpus expanded to ~400 transactions; 120 injection cases written</td><td>Phase 2</td></tr>
+<tr><td>M3</td><td>Agent loop with all four tools (adds allowance inspector, proxy resolver)</td><td>Phase 2</td></tr>
+<tr><td>M4</td><td>Injection-resilience layer and calibrated scorer</td><td>Phase 2–3</td></tr>
+<tr><td>M5</td><td>Full evaluation with comparisons and ablations</td><td>Phase 3</td></tr>
+<tr><td>M6</td><td>Results write-up / paper</td><td>Final</td></tr>
+</table>
+<div class="write" data-len="~80–120 words — risks, compute/API constraints, fallback">
+<ul>
+<li>Anvil/RPC flakiness → simulator already degrades to static analysis</li>
+<li>LLM cost/latency → cache tool results, cap tool calls per tx; baseline path always available as fallback</li>
+<li>Labelling effort → start from documented patterns + seed builder</li>
+<li>Add: your actual API budget / compute you have access to</li>
+</ul>
+</div>
+
+<h2>14. Work Division</h2>
+<table>
+<tr><th style="width:34%">Member</th><th>Primary responsibilities</th></tr>
+<tr><td>Syed Kalbe Raza (22I-0794), group head</td><td>Agent orchestration and tools (G3); calibration and evaluation harness (G2)</td></tr>
+<tr><td>Shayan Ahmed (22I-0822)</td><td>Injection taxonomy and resilience layer (G1); dataset construction and literature review</td></tr>
+</table>
+<p>Both members remain responsible for understanding the complete project.</p>
+
+<h2>15. Potential Publication Direction</h2>
+<div class="write" data-len="~60–100 words">
+<ul>
+<li>Novelty: first pre-signing tx guard that is injection-resilient, calibrated, and dynamically investigating</li>
+<li>Reusable benchmark: labelled tx corpus + blockchain-specific injection taxonomy</li>
+<li>Venue type: security or SE tool/workshop track; benchmark could stand alone</li>
+</ul>
+</div>
+</section>
+
+</body>
+</html>
