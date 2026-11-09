@@ -117,10 +117,21 @@ Unless stated otherwise, they are TEST-split numbers (261 tx; 45 from held-out a
 
 ---
 
-## Open items
+## Iteration 6 — 2026-11-08 — LLM-planner experiments completed (Cerebras)
 
-- LLM-planner experiments (`--planner llm --sample N`, 3 runs) not yet run. Only `GROQ_API_KEY` is configured so far (no NIM key), so these runs use Groq alone.
-  Its E3/E4/E6 rows are still empty.
+- **Ran:** `experiments/run.py e3 --planner llm --runs 3 --sample 12` on Cerebras
+  `gpt-oss-120b` (provider order `nim,cerebras,groq`; NIM unused, Cerebras served).
+  Small seeded stratified sample (n=12) because of free-tier per-minute/per-hour caps.
+- **Result (test, mean±std over 3 runs):** F1 **0.838 ± 0.033**, recall **1.000 ± 0.000**,
+  precision **0.722 ± 0.048**, ECE **0.091 ± 0.021**, tool calls 4.25 ± 0.33. No hard
+  failures across the 3 runs. Written to `results/e3_proposed_llm.json`.
+- **Effect:** satisfies the brief's ≥3-run requirement for the LLM planner. The
+  deterministic `PolicyPlanner` remains the system of record (full 261-tx test, F1 0.966);
+  the LLM row is a secondary comparison with a stated small-sample (n=12) caveat.
+
+---
+
+## Open items
 - 7 of 10 test failures are benign approvals to new/unverified dapps that get escalated
   (`new_dapp_bounded`). Reputation tools alone cannot tell a new legitimate dapp from new
   attacker infrastructure. A candidate fix is a verified-source / audit-registry tool.
