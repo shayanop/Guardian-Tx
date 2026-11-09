@@ -19,6 +19,8 @@
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{url}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -164,7 +166,23 @@ surface and hardens the decision, not merely the prompt.
 selected by cross-validation, measured with ECE~\cite{naeini2015obtaining} and the
 Brier score~\cite{brier1950verification}, and frame the escalation band as selective
 prediction~\cite{geifman2017selective}; the deferral-when-uncertain principle follows
-``Trust or Escalate''~\cite{jung2025trust}.
+``Trust or Escalate''~\cite{jung2025trust}. Calibration is not a cosmetic concern in a
+security setting: a detector whose confidence does not track its correctness cannot
+support a principled abstention policy, and prior work shows LLM confidence
+systematically overstates correctness~\cite{jung2025trust}. The distinction from prior
+transaction-time detectors~\cite{liu2025deeptx,chen2025payload} is that they report a
+hard label or an uncalibrated score and never abstain, so a borderline case is forced
+into an automatic allow or block; GuardianTx instead routes the borderline mass to a
+human through a calibrated band.
+
+\textbf{Positioning.} To our knowledge no prior system simultaneously (i) defends the
+\emph{signing moment} on the user side, (ii) hardens the decision against injection in
+the untrusted data it reads, and (iii) reports calibrated confidence with abstention.
+Osprey~\cite{ruaro2025approve} covers none of these (it is offline and contract-side);
+DeepTx~\cite{liu2025deeptx} covers (i) only; agentic auditors%
+~\cite{jie2025agent4vul,wei2025smartaudit} target contract code, not live
+transactions. GuardianTx occupies the intersection, which is also why its evaluation
+must span all three axes rather than a single accuracy table.
 
 \section{Problem Formulation}
 A candidate transaction $t=(\textit{to},\textit{value},\textit{calldata},\textit{ctx})$
@@ -174,9 +192,29 @@ must output a decision $d(t)\in\{\textsc{allow},\textsc{warn},\textsc{block},
 \textsc{escalate}\}$ and a risk score $p(t)\in[0,1]$. \textsc{allow}/\textsc{warn}
 pass the transaction, \textsc{block} stops it, and \textsc{escalate} abstains and
 defers to a human. A false block (benign $\rightarrow$ \textsc{block}) is treated as
-the most damaging error because it erodes trust and is irreversible from the user's
-standpoint; a false allow (malicious $\rightarrow$ pass) is the safety failure we
-primarily guard against. We formalize three hypotheses:
+the most damaging automatic error because it erodes trust and, once a legitimate
+transfer is suppressed, is irreversible from the user's standpoint; a false allow
+(malicious $\rightarrow$ pass) is the safety failure we primarily guard against.
+Because these two error types have asymmetric cost, a single accuracy number is a
+poor objective: we instead track false-block rate, recall on malicious cases, and the
+rate at which the system abstains (\textsc{escalate}) instead of committing to a wrong
+automatic decision.
+
+\textbf{Threat model.} We assume an attacker who controls the contents of a candidate
+transaction and any free-text \texttt{metadata} associated with it (token names,
+descriptions, simulated tool annotations, and similar fields that a real wallet would
+surface to the user or to an analyzer). The attacker's goal is either to obtain a
+\emph{false allow} for a draining transaction or to manipulate the analyzer's
+reasoning so that a correct \textsc{block} is \emph{downgraded} to \textsc{allow} or
+\textsc{warn}, its investigation \emph{truncated}, or its rationale rewritten. The
+attacker cannot forge trusted on-chain state (balances, code hashes, allowance
+storage, and reputation records are assumed authentic); defending against a compromised
+chain or oracle is out of scope. We quantify injection strength by the attack success
+rate (ASR), the fraction of \emph{eligible} injection cases --- those whose
+trusted evidence would otherwise yield the correct restrictive decision --- for which
+the attacker achieves its goal.
+
+We formalize three hypotheses:
 \begin{itemize}
 \item \textbf{H1 (G1).} A decision-floor verifier makes the worst-case injection
 attack success rate (ASR) zero without reducing clean-input F1.
@@ -188,15 +226,69 @@ accuracy with fewer tool calls and generalizes to held-out attack families.
 
 \section{Proposed System}
 \subsection{Architecture}
-GuardianTx is an agent loop (Fig.~\ref{fig:arch} is described textually here for the
-camera-ready): a \emph{planner} proposes the next action given the current state; a
-\emph{toolbox} executes it against a simulated chain; an \emph{evidence} store
-records trusted findings; and on \texttt{finish} the system runs \emph{assess}
-$\rightarrow$ \emph{calibrate} $\rightarrow$ \emph{verify} to emit the decision. The
-default \textsc{PolicyPlanner} is deterministic (no LLM) and data-dependent; an
-\textsc{LLMPlanner} drives the same loop with a live model; a \textsc{FixedPlanner}
-runs a static tool order (the G3 ablation); and a \textsc{CompliantPlanner} models a
-fully hijacked reasoner for worst-case G1 evaluation.
+GuardianTx is an agent loop (Fig.~\ref{fig:arch}): a \emph{planner} proposes the next
+action given the current state; a \emph{toolbox} executes it against a simulated
+chain; an \emph{evidence} store records trusted findings; and on \texttt{finish} the
+system runs \emph{assess} $\rightarrow$ \emph{calibrate} $\rightarrow$ \emph{verify}
+to emit the decision. The default \textsc{PolicyPlanner} is deterministic (no LLM) and
+data-dependent; an \textsc{LLMPlanner} drives the same loop with a live model; a
+\textsc{FixedPlanner} runs a static tool order (the G3 ablation); and a
+\textsc{CompliantPlanner} models a fully hijacked reasoner for worst-case G1
+evaluation. The loop is bounded by a step budget, and any transaction that reaches the
+budget without a determined decision fails safe to \textsc{escalate} rather than
+guessing.
+
+The single most important structural choice is the \emph{trust boundary} drawn in
+Fig.~\ref{fig:arch}: attacker-influenceable \texttt{metadata} may enter the planner's
+reasoning only after passing the sanitizer, and --- critically --- it can never reach
+\emph{assess} or the \emph{verifier}, which read trusted on-chain fields exclusively.
+Reasoning may therefore be manipulated, but the final decision floor is computed from
+data the attacker does not control. This separation is what lets G1 hold even when the
+reasoner is fully compromised (Sec.~\ref{sec:g1}).
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  font=\scriptsize,
+  box/.style={draw,rounded corners=2pt,minimum height=6.5mm,minimum width=12mm,align=center,inner sep=2pt},
+  trusted/.style={box,fill=blue!6},
+  untrust/.style={box,fill=red!8},
+  final/.style={box,fill=green!8},
+  >={Stealth[length=2mm]}
+]
+\node[untrust] (tx) {Candidate\\tx + ctx};
+\node[trusted,right=5mm of tx] (plan) {Planner};
+\node[trusted,above=5mm of plan] (tool) {Toolbox\\(5 tools)};
+\node[trusted,below=5mm of plan] (ev) {Evidence\\(trusted)};
+\node[trusted,right=7mm of plan] (assess) {Assess};
+\node[trusted,right=6mm of assess] (cal) {Calibrate};
+\node[final,below=5mm of cal] (ver) {Verify\\(floor)};
+\node[final,left=6mm of ver] (dec) {Decision\\A/W/B/E};
+% loop
+\draw[->] (tx) -- (plan);
+\draw[->] (plan) -- (tool);
+\draw[->] (tool) to[bend right=18] node[right,xshift=1pt]{run} (plan);
+\draw[->] (plan) -- (ev);
+\draw[->] (ev) to[bend left=18] node[left,xshift=-1pt]{state} (plan);
+\draw[->] (plan) -- node[above]{finish} (assess);
+\draw[->] (assess) -- (cal);
+\draw[->] (cal) -- (ver);
+\draw[->] (ver) -- (dec);
+% trust boundary: metadata only crosses into planner via sanitizer
+\node[untrust,below=9mm of tx,xshift=2mm] (md) {metadata\\(untrusted)};
+\node[box,fill=yellow!15,right=4mm of md] (san) {Sanitizer};
+\draw[->] (md) -- (san);
+\draw[->,dashed] (san) to[bend right=10] (plan);
+\draw[dashed,gray] ($(ev.south west)+(-0.3,-0.2)$) -- ($(ver.south east)+(0.3,-0.2)$);
+\node[gray,font=\tiny] at ($(ev.south east)+(1.2,-0.4)$) {trusted-only region (assess/verify)};
+\end{tikzpicture}
+\caption{GuardianTx agent loop and trust boundary. The planner--toolbox--evidence
+cycle repeats until \texttt{finish}; then assess/calibrate/verify emit the decision.
+Untrusted \texttt{metadata} (red) reaches the planner only through the sanitizer and
+never reaches assess or the verifier, whose decision floor is computed from trusted
+fields alone.}
+\label{fig:arch}
+\end{figure}
 
 \subsection{Environment and tools}
 A deterministic simulated chain (\texttt{world.json}) stands in for a local Anvil
@@ -209,27 +301,54 @@ only through \texttt{metadata}; every other field is treated as trusted.
 \subsection{G1 --- Injection resilience}
 Untrusted strings pass a sanitizer (\texttt{guard.screen}) at a defined boundary
 before any reasoning. Because a regex sanitizer generalizes poorly (Sec.~\ref{sec:g1}),
-the load-bearing component is an \emph{output verifier} with three checks: a
-\emph{decision floor} that prevents a reasoner from downgrading a risk level the
-trusted evidence already justifies; an \emph{evidence checklist} that requires named
-trusted findings for each decision; and an \emph{output-provenance} check that
-withholds any reasoner rationale sharing a long verbatim span with untrusted input.
+the load-bearing component is an \emph{output verifier} with three checks:
+\begin{itemize}
+\item \textbf{Decision floor.} The trusted evidence independently induces a minimum
+restrictive level for the transaction (for example, a confirmed proxy-mediated
+allowance increase to an unverified spender floors the decision at \textsc{block}).
+The verifier clamps the reasoner's output to be no less restrictive than this floor.
+A downgrade attack therefore cannot succeed: the most an injected instruction can do
+is argue for a \emph{more} restrictive decision, which is safe.
+\item \textbf{Evidence checklist.} Each decision must cite the specific trusted
+findings that justify it. A reasoner that reaches \textsc{allow} without the evidence
+an allow requires is overridden to \textsc{escalate}, closing the ``confident but
+unsupported'' path that injection tends to exploit.
+\item \textbf{Output provenance.} Any reasoner rationale that shares a long verbatim
+span with an untrusted input field is withheld, so laundered text cannot be presented
+to the user as the agent's own justification.
+\end{itemize}
+The floor is computed only from trusted fields, so the guarantee holds even when the
+reasoner is fully controlled by the attacker --- the case the \textsc{CompliantPlanner}
+models in E4.
 
 \subsection{G2 --- Calibration and abstention}
 A calibrator is fit on the development split only. Platt
 scaling~\cite{niculescu2005predicting} is retained solely when it beats the identity
 map under development cross-validation; otherwise the identity map is kept, avoiding
-test-set leakage. Two thresholds, $t_{\text{low}}=0.25$ and $t_{\text{block}}=0.475$,
-define the bands; scores between them yield \textsc{escalate}. We report ECE, Brier
-score, false-block rate, and a risk--coverage curve.
+test-set leakage. This selection rule is deliberately conservative: a calibrator that
+does not demonstrably help on held-out development folds is discarded rather than
+risked on test, so the reported ECE is never an artifact of fitting the mapping to the
+evaluation data. Two thresholds, $t_{\text{low}}=0.25$ and $t_{\text{block}}=0.475$,
+define the bands; scores below $t_{\text{low}}$ pass, scores above $t_{\text{block}}$
+block, and scores between them yield \textsc{escalate}. The thresholds themselves are
+chosen on development data to balance false-block rate against recall, and are frozen
+before any test transaction is scored. We report ECE, Brier score, false-block rate,
+and a risk--coverage curve so that the abstention policy can be judged at every
+operating point rather than at a single threshold.
 
 \subsection{G3 --- Dynamic investigation}
-The \textsc{PolicyPlanner} selects the next tool from the current evidence (e.g.,
-resolve a proxy (via its EIP-1967 storage slots~\cite{eip1967}) only when code
-indicates indirection, inspect allowance only for approval-bearing calldata),
-stopping when the decision is determined. The
-\textsc{FixedPlanner} always runs the full tool sequence, isolating the value of
-dynamic selection.
+The \textsc{PolicyPlanner} selects the next tool from the current evidence, following a
+small set of data-dependent rules: decode first; look up the counterparty's
+signature and reputation; resolve a proxy (via its EIP-1967 storage
+slots~\cite{eip1967}) only when the decoded code indicates indirection; inspect
+allowance only for approval-bearing calldata; and simulate only when the preceding
+evidence leaves the decision undetermined. The loop stops as soon as the evidence
+determines a decision, so cheap, decisive cases finish in one or two calls while
+ambiguous ones trigger deeper investigation. The \textsc{FixedPlanner} always runs the
+full tool sequence regardless of evidence, isolating the value of dynamic selection:
+any accuracy difference between the two is attributable to \emph{when} tools run, and
+any tool-count difference to the planner skipping work that would not change the
+decision.
 
 \section{Experimental Setup}
 \subsection{Corpus and splits}
@@ -265,6 +384,20 @@ false-flag rates, escalation rate, ECE, Brier score, selective accuracy and
 coverage, tool-call counts, and --- for G1 --- attack success rate (ASR), the
 fraction of eligible injections that achieve the attacker's goal.
 
+\subsection{Evaluation protocol}
+Every design choice --- thresholds, sanitizer cues, the calibrator decision, and the
+planner rules --- is fixed using the development split alone; the test split, and in
+particular the three held-out attack families and the test-only injection templates,
+is scored exactly once per reported configuration. Injection templates are disjoint
+between development and test by construction, so a sanitizer cannot be credited for
+matching phrasing it was tuned on, and the held-out families let us separate
+generalization from pattern memorization. Confidence intervals on F1 are computed by
+the standard normal approximation over the test transactions. This discipline is what
+makes the gap between development and test behavior --- most visibly the sanitizer's
+collapse from 1.00 to 0.20 screening recall (Sec.~\ref{sec:g1}) --- observable rather
+than hidden, and it is the reason the headline numbers can be reproduced from the
+repository without access to any tuning that happened off-split.
+
 \section{Results}
 \subsection{E1--E3: baseline, base paper, proposed system}
 Table~\ref{tab:main} compares the three systems on the test split. The rule baseline
@@ -298,7 +431,45 @@ The deterministic policy agent is the system of record. The LLM planner, run thr
 times, is stable: recall was 1.000 in every run (no malicious transaction missed);
 one of three runs blocked a benign transaction once, producing the nonzero
 false-block mean. On the held-out families the policy agent attains F1 1.000 versus
-0.500 for the rule baseline.
+0.500 for the rule baseline, evidence that the dynamic investigation generalizes to
+attack structures never seen during development rather than memorizing seen patterns.
+
+The jump from the rule baseline to the agent (Fig.~\ref{fig:f1}) is not a matter of
+threshold tuning: the baseline's errors are structural. It blocks benign unlimited
+approvals to verified routers and permits to Permit2 because it pattern-matches on
+calldata shape, whereas the agent resolves the counterparty's reputation and
+simulates the state change before deciding. The oracle base-paper detector sits
+between the two: precise but blind to anything outside the contract-side ACT pattern,
+so it never flags phishing transfers or poisoned-address interactions that carry no
+approve/\texttt{transferFrom} step.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\scriptsize]
+% axes
+\draw[->] (0,0) -- (0,4.4);
+\draw[->] (0,0) -- (6.4,0);
+\foreach \y/\v in {0/0.0,1/0.25,2/0.50,3/0.75,4/1.00}{
+  \draw[gray!40] (0,\y) -- (6.2,\y);
+  \draw (0,\y) -- (-0.08,\y) node[left]{\v};}
+\node[rotate=90] at (-0.75,2) {Test F1};
+% bars (height = F1 * 4)
+\fill[gray!55]   (0.5,0) rectangle (1.3,2.18);  \node[above] at (0.9,2.18){0.545};
+\fill[blue!30]   (2.0,0) rectangle (2.8,3.05);  \node[above] at (2.4,3.05){0.762};
+\fill[green!45!black!70] (3.5,0) rectangle (4.3,3.86); \node[above] at (3.9,3.86){\textbf{0.966}};
+\fill[green!25]  (5.0,0) rectangle (5.8,3.35);  \node[above] at (5.4,3.35){0.838};
+% x labels
+\node[below,align=center] at (0.9,0)  {E1\\rule};
+\node[below,align=center] at (2.4,0)  {E2\\Osprey$^\ast$};
+\node[below,align=center] at (3.9,0)  {E3\\policy};
+\node[below,align=center] at (5.4,0)  {E3\\LLM};
+\end{tikzpicture}
+\caption{Test-split F1 by system (Table~\ref{tab:main}). $^\ast$E2 is an oracle upper
+bound for contract-side detection, not Osprey's reported figures. The policy agent is
+the system of record; the LLM planner is a stochastic secondary configuration
+($n=12$, 3 runs).}
+\label{fig:f1}
+\end{figure}
 
 \subsection{E4 (G1): injection resilience}
 \label{sec:g1}
@@ -336,9 +507,15 @@ contribution of G2 is therefore the \emph{abstention band}, which raises selecti
 accuracy from 0.973 (no abstention, coverage 1.0) to 0.996 at 94.3\% coverage and
 raises recall from 0.950 to 0.993. Applied to the weaker Phase-1 scorer, the same
 calibration machinery reduces ECE from 0.344 to 0.103 and Brier from 0.353 to 0.262,
-confirming the method works where miscalibration exists. We therefore rate G2
-\emph{partially} addressed: the abstention mechanism is effective, but the agent's
-base scores were already well-calibrated, so calibration proper has little headroom.
+confirming the method works where miscalibration exists. Read as a risk--coverage
+trade-off, the band spends 5.7\% of coverage (the escalated mass) to convert the
+residual automatic errors into human-reviewed decisions, lifting selective accuracy to
+0.996; because those escalations fall precisely on the uncertain cases the base scorer
+assigns intermediate probabilities, the curve is steep --- a small coverage sacrifice
+buys a large accuracy gain. We therefore rate G2 \emph{partially} addressed: the
+abstention mechanism is effective, but the agent's base scores were already
+well-calibrated, so calibration proper has little headroom, and we report this honestly
+rather than claiming a calibration improvement the data does not support.
 
 \subsection{E4 (G3): dynamic investigation}
 The dynamic planner attains F1 0.966 on the full test split versus 0.940 for the
@@ -381,8 +558,16 @@ The dynamic planner averages 3.44 tool calls (max 6) versus 4.94 (max 7) for fix
 order, at sub-millisecond offline latency. Under injected transient tool failures the
 agent degrades gracefully with retries: at a 30\% fault rate, F1 is
 $0.948\pm0.004$ with retries versus $0.798\pm0.003$ without, and decision agreement
-with the fault-free run is 96.6\% versus 53.5\%. When the LLM reasoner is fully
-unavailable the agent fails safe to \textsc{escalate}.
+with the fault-free run is 96.6\% versus 53.5\%. The gap between these two numbers is
+the practical value of the retry-and-fail-safe design: without it, nearly half of the
+decisions change under realistic tool flakiness, and the changes are not random ---
+a lookup or simulation that silently returns nothing tends to strip away exactly the
+evidence a restrictive decision depends on, biasing the no-retry agent toward unsafe
+allows. With retries the agent recovers the missing evidence; when recovery fails and
+the reasoner or a required tool is unavailable, the agent fails safe to
+\textsc{escalate} rather than committing to a decision it cannot justify. Reliability
+is thus not a separate feature but a direct consequence of the same
+evidence-then-floor discipline that underpins G1.
 
 \subsection{Gap-resolution table}
 Table~\ref{tab:gap} summarizes the outcome per gap.
@@ -429,6 +614,32 @@ the same root cause: reliance on reputation signals that are missing for new
 addresses. Future work could add behavioral priors (e.g., contract age, funding
 lineage) to reduce both error types.
 
+\section{Discussion}
+Three findings deserve emphasis beyond the per-gap tables. First, the
+\emph{deterministic} policy planner, not the LLM planner, is the system of record, and
+it is the stronger of the two on every safety-relevant metric (F1 0.966 vs.\ 0.838,
+false-block rate 0.0\% vs.\ 5.6\%). In a security setting this is a feature: the
+deterministic planner is auditable, reproducible bit-for-bit, free to run, and
+incapable of being talked out of a decision by injected text, whereas the LLM planner
+is valuable mainly as evidence that the same loop admits a learned policy and still
+behaves. The LLM's perfect recall with lower precision is the expected profile of a
+model that errs toward caution under uncertainty --- acceptable here because the
+abstention band and verifier catch the resulting over-restriction.
+
+Second, the honest result for G2 and G3 is ``partially addressed,'' and we report it
+as such. The agent's base scores were already well-calibrated, so the calibration
+component has little to improve on the agent itself even though it clearly helps the
+weaker Phase-1 scorer; and dynamic investigation buys efficiency rather than accuracy
+on the held-out families, where both planners already reach F1 1.000. Claiming full
+resolution of these gaps would misrepresent the data.
+
+Third, G1 is the one gap we rate fully resolved, and the reason is architectural
+rather than empirical: the decision floor makes downgrade attacks fail \emph{by
+construction}, so the result does not depend on having anticipated the attacker's
+phrasing --- exactly the property the sanitizer lacks. The practical lesson is that
+hardening the \emph{decision} against untrusted input generalizes where hardening the
+\emph{text} does not.
+
 \section{Limitations and Threats to Validity}
 Results are obtained on a \emph{simulated} chain, not live mainnet traffic; the
 simulator models ERC-20/721 semantics and drainer sweeps but not the full EVM, and
@@ -460,26 +671,26 @@ planner); the corpus is built by \texttt{python data/build\_corpus.py} (seed 202
 
 \begin{thebibliography}{00}
 \bibitem{ruaro2025approve} N. Ruaro, F. Gritti, D. Meng, R. McLaughlin, I. Grishchenko, C. Kruegel, and G. Vigna, ``Approve Once, Regret Forever: On the Exploitation of Ethereum's Approve-TransferFrom Ecosystem,'' in \textit{Proc. 34th USENIX Security Symp.}, 2025, pp.\ 1281--1298. \url{https://www.usenix.org/conference/usenixsecurity25/presentation/ruaro}
-\bibitem{liu2025deeptx} Y. Liu, X. Li, and Y. Li, ``DeepTx: Real-Time Transaction Risk Analysis via Multi-Modal Features and LLM Reasoning,'' in \textit{Proc. 40th IEEE/ACM Int. Conf. Automated Software Engineering (ASE), Tool Demonstration Track}, 2025, arXiv:2510.18438. \url{https://arxiv.org/abs/2510.18438}
-\bibitem{zhang2025asb} H. Zhang \textit{et al.}, ``Agent Security Bench (ASB): Formalizing and Benchmarking Attacks and Defenses in LLM-based Agents,'' in \textit{Proc. Int. Conf. Learning Representations (ICLR)}, 2025, arXiv:2410.02644. \url{https://arxiv.org/abs/2410.02644}
+\bibitem{liu2025deeptx} Y. Liu, X. Li, and Y. Li, ``DeepTx: Real-Time Transaction Risk Analysis via Multi-Modal Features and LLM Reasoning,'' in \textit{Proc. 40th IEEE/ACM Int. Conf. Automated Software Engineering (ASE), Tool Demonstration Track}, 2025, doi: 10.48550/arXiv.2510.18438. \url{https://doi.org/10.48550/arXiv.2510.18438}
+\bibitem{zhang2025asb} H. Zhang \textit{et al.}, ``Agent Security Bench (ASB): Formalizing and Benchmarking Attacks and Defenses in LLM-based Agents,'' in \textit{Proc. Int. Conf. Learning Representations (ICLR)}, 2025, doi: 10.48550/arXiv.2410.02644. \url{https://doi.org/10.48550/arXiv.2410.02644}
 \bibitem{he2025daas} B. He \textit{et al.}, ``Unmasking the Shadow Economy: A Deep Dive into Drainer-as-a-Service Phishing on Ethereum,'' in \textit{Proc. ACM Internet Measurement Conf. (IMC)}, 2025, pp.\ 430--444, doi: 10.1145/3730567.3764476. \url{https://doi.org/10.1145/3730567.3764476}
-\bibitem{chen2025payload} Z. Chen, Y. Hu, B. He, D. Luo, L. Wu, and Y. Zhou, ``Dissecting Payload-based Transaction Phishing on Ethereum,'' in \textit{Proc. Network and Distributed System Security Symp. (NDSS)}, 2025, arXiv:2409.02386. \url{https://arxiv.org/abs/2409.02386}
-\bibitem{tsuchiya2025poisoning} T. Tsuchiya, J.-D. Dong, K. Soska, and N. Christin, ``Blockchain Address Poisoning,'' in \textit{Proc. 34th USENIX Security Symp.}, 2025, arXiv:2501.16681. \url{https://arxiv.org/abs/2501.16681}
+\bibitem{chen2025payload} Z. Chen, Y. Hu, B. He, D. Luo, L. Wu, and Y. Zhou, ``Dissecting Payload-based Transaction Phishing on Ethereum,'' in \textit{Proc. Network and Distributed System Security Symp. (NDSS)}, 2025, doi: 10.48550/arXiv.2409.02386. \url{https://doi.org/10.48550/arXiv.2409.02386}
+\bibitem{tsuchiya2025poisoning} T. Tsuchiya, J.-D. Dong, K. Soska, and N. Christin, ``Blockchain Address Poisoning,'' in \textit{Proc. 34th USENIX Security Symp.}, 2025, doi: 10.48550/arXiv.2501.16681. \url{https://doi.org/10.48550/arXiv.2501.16681}
 \bibitem{qasse2025proxify} I. Qasse, M. Hamdaqa, and B. {\TH}. J{\'o}nsson, ``PROXiFY: A Bytecode Analysis Tool for Detecting and Classifying Proxy Contracts in Ethereum,'' in \textit{Proc. ASE 2025, Tool Demonstration Track}, 2025. \url{https://conf.researchr.org/details/ase-2025/ase-2025-tool-demonstration-track/37}
 \bibitem{jie2025agent4vul} W. Jie \textit{et al.}, ``Agent4Vul: Multimodal LLM Agents for Smart Contract Vulnerability Detection,'' \textit{Science China Information Sciences}, 2025, doi: 10.1007/s11432-024-4402-2. \url{https://doi.org/10.1007/s11432-024-4402-2}
 \bibitem{wei2025smartaudit} Z. Wei \textit{et al.}, ``Advanced Smart Contract Vulnerability Detection via LLM-Powered Multi-Agent Systems,'' \textit{IEEE Trans. Software Engineering}, vol.\ 51, no.\ 10, pp.\ 2830--2846, 2025, doi: 10.1109/TSE.2025.3597319. \url{https://doi.org/10.1109/TSE.2025.3597319}
 \bibitem{yu2025smartllama} L. Yu \textit{et al.}, ``Smart-LLaMA-DPO: Reinforced Large Language Model for Explainable Smart Contract Vulnerability Detection,'' \textit{Proc. ACM Software Engineering}, vol.\ 2, no.\ ISSTA, pp.\ 182--205, 2025, doi: 10.1145/3728878. \url{https://doi.org/10.1145/3728878}
-\bibitem{jung2025trust} J. Jung, F. Brahman, and Y. Choi, ``Trust or Escalate: LLM Judges with Provable Guarantees for Human Agreement,'' in \textit{Proc. Int. Conf. Learning Representations (ICLR)}, 2025, arXiv:2407.18370. \url{https://arxiv.org/abs/2407.18370}
+\bibitem{jung2025trust} J. Jung, F. Brahman, and Y. Choi, ``Trust or Escalate: LLM Judges with Provable Guarantees for Human Agreement,'' in \textit{Proc. Int. Conf. Learning Representations (ICLR)}, 2025, doi: 10.48550/arXiv.2407.18370. \url{https://doi.org/10.48550/arXiv.2407.18370}
 \bibitem{greshake2023injection} K. Greshake, S. Abdelnabi, S. Mishra, C. Endres, T. Holz, and M. Fritz, ``Not What You've Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection,'' in \textit{Proc. 16th ACM Workshop on Artificial Intelligence and Security (AISec)}, 2023, pp.\ 79--90, doi: 10.1145/3605764.3623985. \url{https://doi.org/10.1145/3605764.3623985}
-\bibitem{perez2022ignore} F. Perez and I. Ribeiro, ``Ignore Previous Prompt: Attack Techniques for Language Models,'' in \textit{NeurIPS ML Safety Workshop}, 2022, arXiv:2211.09527. \url{https://arxiv.org/abs/2211.09527}
+\bibitem{perez2022ignore} F. Perez and I. Ribeiro, ``Ignore Previous Prompt: Attack Techniques for Language Models,'' in \textit{NeurIPS ML Safety Workshop}, 2022, doi: 10.48550/arXiv.2211.09527. \url{https://doi.org/10.48550/arXiv.2211.09527}
 \bibitem{owasp2025llm} OWASP, ``OWASP Top 10 for LLM Applications 2025,'' 2025. \url{https://genai.owasp.org/llm-top-10/}
-\bibitem{yao2023react} S. Yao, J. Zhao, D. Yu, N. Du, I. Shafran, K. Narasimhan, and Y. Cao, ``ReAct: Synergizing Reasoning and Acting in Language Models,'' in \textit{Proc. Int. Conf. Learning Representations (ICLR)}, 2023, arXiv:2210.03629. \url{https://arxiv.org/abs/2210.03629}
-\bibitem{schick2023toolformer} T. Schick \textit{et al.}, ``Toolformer: Language Models Can Teach Themselves to Use Tools,'' in \textit{Proc. Advances in Neural Information Processing Systems (NeurIPS)}, 2023, arXiv:2302.04761. \url{https://arxiv.org/abs/2302.04761}
-\bibitem{wei2022cot} J. Wei \textit{et al.}, ``Chain-of-Thought Prompting Elicits Reasoning in Large Language Models,'' in \textit{Proc. Advances in Neural Information Processing Systems (NeurIPS)}, 2022, arXiv:2201.11903. \url{https://arxiv.org/abs/2201.11903}
+\bibitem{yao2023react} S. Yao, J. Zhao, D. Yu, N. Du, I. Shafran, K. Narasimhan, and Y. Cao, ``ReAct: Synergizing Reasoning and Acting in Language Models,'' in \textit{Proc. Int. Conf. Learning Representations (ICLR)}, 2023, doi: 10.48550/arXiv.2210.03629. \url{https://doi.org/10.48550/arXiv.2210.03629}
+\bibitem{schick2023toolformer} T. Schick \textit{et al.}, ``Toolformer: Language Models Can Teach Themselves to Use Tools,'' in \textit{Proc. Advances in Neural Information Processing Systems (NeurIPS)}, 2023, doi: 10.48550/arXiv.2302.04761. \url{https://doi.org/10.48550/arXiv.2302.04761}
+\bibitem{wei2022cot} J. Wei \textit{et al.}, ``Chain-of-Thought Prompting Elicits Reasoning in Large Language Models,'' in \textit{Proc. Advances in Neural Information Processing Systems (NeurIPS)}, 2022, doi: 10.48550/arXiv.2201.11903. \url{https://doi.org/10.48550/arXiv.2201.11903}
 \bibitem{niculescu2005predicting} A. Niculescu-Mizil and R. Caruana, ``Predicting Good Probabilities with Supervised Learning,'' in \textit{Proc. 22nd Int. Conf. Machine Learning (ICML)}, 2005, pp.\ 625--632, doi: 10.1145/1102351.1102430. \url{https://doi.org/10.1145/1102351.1102430}
 \bibitem{naeini2015obtaining} M. P. Naeini, G. F. Cooper, and M. Hauskrecht, ``Obtaining Well Calibrated Probabilities Using Bayesian Binning,'' in \textit{Proc. 29th AAAI Conf. Artificial Intelligence}, 2015, pp.\ 2901--2907, doi: 10.1609/aaai.v29i1.9602. \url{https://doi.org/10.1609/aaai.v29i1.9602}
 \bibitem{brier1950verification} G. W. Brier, ``Verification of Forecasts Expressed in Terms of Probability,'' \textit{Monthly Weather Review}, vol.\ 78, no.\ 1, pp.\ 1--3, 1950, doi: 10.1175/1520-0493(1950)078<0001:VOFEIT>2.0.CO;2. \url{https://doi.org/10.1175/1520-0493(1950)078\%3C0001:VOFEIT\%3E2.0.CO;2}
-\bibitem{geifman2017selective} Y. Geifman and R. El-Yaniv, ``Selective Classification for Deep Neural Networks,'' in \textit{Proc. Advances in Neural Information Processing Systems (NeurIPS)}, 2017, arXiv:1705.08500. \url{https://arxiv.org/abs/1705.08500}
+\bibitem{geifman2017selective} Y. Geifman and R. El-Yaniv, ``Selective Classification for Deep Neural Networks,'' in \textit{Proc. Advances in Neural Information Processing Systems (NeurIPS)}, 2017, doi: 10.48550/arXiv.1705.08500. \url{https://doi.org/10.48550/arXiv.1705.08500}
 \bibitem{atzei2017survey} N. Atzei, M. Bartoletti, and T. Cimoli, ``A Survey of Attacks on Ethereum Smart Contracts (SoK),'' in \textit{Proc. 6th Int. Conf. Principles of Security and Trust (POST)}, 2017, pp.\ 164--186, doi: 10.1007/978-3-662-54455-6\_8. \url{https://doi.org/10.1007/978-3-662-54455-6_8}
 \bibitem{perez2021vulnerable} D. Perez and B. Livshits, ``Smart Contract Vulnerabilities: Vulnerable Does Not Imply Exploited,'' in \textit{Proc. 30th USENIX Security Symp.}, 2021, pp.\ 1325--1341. \url{https://www.usenix.org/conference/usenixsecurity21/presentation/perez}
 \bibitem{eip20} F. Vogelsteller and V. Buterin, ``EIP-20: Token Standard,'' Ethereum Improvement Proposals, 2015. \url{https://eips.ethereum.org/EIPS/eip-20}
