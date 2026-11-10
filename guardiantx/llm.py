@@ -66,6 +66,9 @@ TEMPERATURE = float(os.environ.get("GUARDIANTX_TEMPERATURE", "0.2"))
 TOP_P = float(os.environ.get("GUARDIANTX_TOP_P", "0.7"))
 SEED = os.environ.get("GUARDIANTX_SEED")  # optional; not every model honours it
 PRICE = (float(os.environ.get("GUARDIANTX_PRICE_IN", "0")), float(os.environ.get("GUARDIANTX_PRICE_OUT", "0")))
+# Longest wait (s) when every provider is rate-limited. 90 fails fast (interactive use);
+# unattended batch runs can set ~3700 to sleep through an hourly quota instead of failing.
+MAX_WAIT = float(os.environ.get("GUARDIANTX_MAX_WAIT", "90"))
 
 
 def sanitize(untrusted: str, limit: int = 300) -> str:
@@ -128,7 +131,7 @@ def _post(provider: str, body: dict, retries: int, timeout: float, log: list, ro
             if e.code == 429:
                 _cooldown[provider] = time.monotonic() + wait
                 # a long quota (not a per-minute blip), or another provider is free: don't sleep here
-                if asked > 90 or rotate:
+                if asked > 90 or rotate:  # chat() decides whether to wait (MAX_WAIT) or fail
                     raise _Busy(f"{provider} HTTP 429 (retry after {wait:.0f}s): {detail!r}") from None
             reason = f"HTTP {e.code} {detail[:120]!r}"
         except (urllib.error.URLError, TimeoutError) as e:
@@ -157,14 +160,18 @@ def chat(messages: list, *, tools: list | None = None, max_tokens: int = 1024,
     if tools:
         body["tools"], body["tool_choice"] = tools, "auto"
     errors, live = [], configured()  # `live` drops providers that fail for a non-rate-limit reason
-    for _ in range(retries + 1):
+    # only rate-limit rounds use this budget (hard failures empty `live` instead); 30 rounds
+    # absorbs a burst of short 429s from one provider while the other sits out an hourly quota
+    for _ in range(max(retries + 1, 30)):
         if not live:
             break
         ready = [p for p in live if _cooldown.get(p, 0) <= time.monotonic()]
         if not ready:
             first = min(live, key=lambda p: _cooldown[p])
             wait = _cooldown[first] - time.monotonic()
-            if wait > 90:  # every provider is on a long quota: waiting is pointless
+            if wait > MAX_WAIT:  # every provider is on a long quota
+                errors.append(f"every provider rate-limited; next free in {wait:.0f}s "
+                              f"(over GUARDIANTX_MAX_WAIT={MAX_WAIT:.0f}s)")
                 break
             log.append({"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "provider": first, "status": "cooldown",
                         "wait_s": round(wait, 1)})

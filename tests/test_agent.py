@@ -185,6 +185,26 @@ def test_llm_rate_limited_provider_is_skipped_until_cooldown_ends():
     assert r1["_provider"] == r2["_provider"] == "groq" and took < 1
 
 
+def test_llm_all_providers_on_long_quota_fails_with_clear_message():
+    import time
+
+    import guardiantx.llm as llm
+    old_order, env = llm.ORDER, dict(os.environ)
+    llm.ORDER = ["cerebras", "groq"]
+    os.environ.update(CEREBRAS_API_KEY="x", GROQ_API_KEY="y")
+    llm._cooldown.update(cerebras=time.monotonic() + 3600, groq=time.monotonic() + 400)
+    try:
+        llm.chat([{"role": "user", "content": "hi"}])
+        raise AssertionError("should have failed")
+    except RuntimeError as e:
+        assert "rate-limited" in str(e) and "not configured" not in str(e), e
+    finally:
+        llm.ORDER = old_order
+        llm._cooldown.clear()
+        os.environ.clear()
+        os.environ.update(env)
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
