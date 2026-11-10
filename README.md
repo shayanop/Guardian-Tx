@@ -148,8 +148,8 @@ is below 1.0.
 
 **E6:** the dynamic planner averages 3.44 tool calls per tx against 4.94 for fixed
 order. Under a 30% transient tool-failure rate, F1 is 0.948 ± 0.004 with retries
-and 0.798 ± 0.003 without; decision agreement with the fault-free run is 96.6% vs
-63.7%.
+and 0.798 ± 0.003 without; decision agreement with the fault-free run is 95.7% vs
+53.5%.
 
 **E3 with an LLM planner (Cerebras `gpt-oss-120b`, temp 0.2, top_p 0.7, 3 runs × a
 seeded stratified sample of n=12 test tx, mean ± std):** F1 0.838 ± 0.033,

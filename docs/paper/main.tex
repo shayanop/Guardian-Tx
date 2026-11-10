@@ -35,14 +35,16 @@ Project code: [SET project/group code, e.g.\ G3-xx]. Base paper: Ruaro \textit{e
 
 \author{\IEEEauthorblockN{Syed Kalbe Raza}
 \IEEEauthorblockA{\textit{Dept.\ of Computer Science} \\
-\textit{National University of Computer and Emerging Sciences (FAST-NUCES)}\\
+\textit{National University of Computer}\\
+\textit{and Emerging Sciences (FAST-NUCES)}\\
 Islamabad, Pakistan \\
 Roll No.\ 22I-0794 \\
 i220794@nu.edu.pk}
 \and
 \IEEEauthorblockN{Shayan Ahmed}
 \IEEEauthorblockA{\textit{Dept.\ of Computer Science} \\
-\textit{National University of Computer and Emerging Sciences (FAST-NUCES)}\\
+\textit{National University of Computer}\\
+\textit{and Emerging Sciences (FAST-NUCES)}\\
 Islamabad, Pakistan \\
 Roll No.\ 22I-0822 \\
 i220822@nu.edu.pk}}
@@ -210,9 +212,11 @@ reasoning so that a correct \textsc{block} is \emph{downgraded} to \textsc{allow
 attacker cannot forge trusted on-chain state (balances, code hashes, allowance
 storage, and reputation records are assumed authentic); defending against a compromised
 chain or oracle is out of scope. We quantify injection strength by the attack success
-rate (ASR), the fraction of \emph{eligible} injection cases --- those whose
-trusted evidence would otherwise yield the correct restrictive decision --- for which
-the attacker achieves its goal.
+rate (ASR), the fraction of \emph{eligible} injection cases for which the attacker
+achieves its goal. A downgrade or truncation case is eligible only if the same
+transaction is flagged when run without the injection, so that a miss the agent makes
+anyway is not counted as an injection effect; a rationale case succeeds if the
+payload appears in the rationale shown to the user.
 
 We formalize three hypotheses:
 \begin{itemize}
@@ -234,9 +238,10 @@ to emit the decision. The default \textsc{PolicyPlanner} is deterministic (no LL
 data-dependent; an \textsc{LLMPlanner} drives the same loop with a live model; a
 \textsc{FixedPlanner} runs a static tool order (the G3 ablation); and a
 \textsc{CompliantPlanner} models a fully hijacked reasoner for worst-case G1
-evaluation. The loop is bounded by a step budget, and any transaction that reaches the
-budget without a determined decision fails safe to \textsc{escalate} rather than
-guessing.
+evaluation. The loop is bounded by a step budget (10 steps); when the budget is
+exhausted the loop is forced to \texttt{finish}, and any required evidence that is
+still missing then sends the decision to \textsc{escalate} rather than letting the
+system guess.
 
 The single most important structural choice is the \emph{trust boundary} drawn in
 Fig.~\ref{fig:arch}: attacker-influenceable \texttt{metadata} may enter the planner's
@@ -256,37 +261,36 @@ reasoner is fully compromised (Sec.~\ref{sec:g1}).
   final/.style={box,fill=green!8},
   >={Stealth[length=2mm]}
 ]
-\node[untrust] (tx) {Candidate\\tx + ctx};
-\node[trusted,right=5mm of tx] (plan) {Planner};
-\node[trusted,above=5mm of plan] (tool) {Toolbox\\(5 tools)};
-\node[trusted,below=5mm of plan] (ev) {Evidence\\(trusted)};
-\node[trusted,right=7mm of plan] (assess) {Assess};
-\node[trusted,right=6mm of assess] (cal) {Calibrate};
-\node[final,below=5mm of cal] (ver) {Verify\\(floor)};
-\node[final,left=6mm of ver] (dec) {Decision\\A/W/B/E};
-% loop
+% row 1: untrusted input -> tools, final decision
+\node[untrust] (md)   at (0,1.5)    {metadata\\(untrusted)};
+\node[trusted] (tool) at (2.7,1.5)  {Toolbox\\(5 tools)};
+\node[final]   (dec)  at (7.0,1.5)  {Decision\\A/W/B/E};
+% row 2: the loop and the verifier
+\node[untrust] (tx)   at (0,0)      {Candidate\\tx};
+\node[trusted] (plan) at (2.7,0)    {Planner};
+\node[final]   (ver)  at (7.0,0)    {Verify\\(floor)};
+% row 3: trusted-evidence path
+\node[trusted] (ev)   at (2.7,-1.5) {Evidence\\(trusted)};
+\node[trusted] (as)   at (4.9,-1.5) {Assess};
+\node[trusted] (cal)  at (7.0,-1.5) {Calibrate};
+% edges
+\draw[->] (md) -- node[above]{sanitizer} (tool);
 \draw[->] (tx) -- (plan);
-\draw[->] (plan) -- (tool);
-\draw[->] (tool) to[bend right=18] node[right,xshift=1pt]{run} (plan);
-\draw[->] (plan) -- (ev);
-\draw[->] (ev) to[bend left=18] node[left,xshift=-1pt]{state} (plan);
-\draw[->] (plan) -- node[above]{finish} (assess);
-\draw[->] (assess) -- (cal);
-\draw[->] (cal) -- (ver);
+\draw[->] ([xshift=-2.5mm]plan.north) -- node[left]{action} ([xshift=-2.5mm]tool.south);
+\draw[->] ([xshift=2.5mm]tool.south) -- node[right]{observation} ([xshift=2.5mm]plan.north);
+\draw[->] ([xshift=-2.5mm]plan.south) -- node[left]{record} ([xshift=-2.5mm]ev.north);
+\draw[->] ([xshift=2.5mm]ev.north) -- node[right]{state} ([xshift=2.5mm]plan.south);
+\draw[->] (plan) -- node[above]{finish + proposal} (ver);
+\draw[->] (ev) -- (as);
+\draw[->] (as) -- (cal);
+\draw[->] (cal) -- node[right]{floor} (ver);
 \draw[->] (ver) -- (dec);
-% trust boundary: metadata only crosses into planner via sanitizer
-\node[untrust,below=9mm of tx,xshift=2mm] (md) {metadata\\(untrusted)};
-\node[box,fill=yellow!15,right=4mm of md] (san) {Sanitizer};
-\draw[->] (md) -- (san);
-\draw[->,dashed] (san) to[bend right=10] (plan);
-\draw[dashed,gray] ($(ev.south west)+(-0.3,-0.2)$) -- ($(ver.south east)+(0.3,-0.2)$);
-\node[gray,font=\tiny] at ($(ev.south east)+(1.2,-0.4)$) {trusted-only region (assess/verify)};
 \end{tikzpicture}
 \caption{GuardianTx agent loop and trust boundary. The planner--toolbox--evidence
-cycle repeats until \texttt{finish}; then assess/calibrate/verify emit the decision.
-Untrusted \texttt{metadata} (red) reaches the planner only through the sanitizer and
-never reaches assess or the verifier, whose decision floor is computed from trusted
-fields alone.}
+cycle repeats until \texttt{finish}. Untrusted \texttt{metadata} (red) enters only
+inside tool observations, after sanitizer screening. Assess and calibrate read the
+trusted evidence alone and produce the decision floor; the verifier (green) combines
+that floor with the planner's proposal and can only make the outcome stricter.}
 \label{fig:arch}
 \end{figure}
 
@@ -303,16 +307,16 @@ Untrusted strings pass a sanitizer (\texttt{guard.screen}) at a defined boundary
 before any reasoning. Because a regex sanitizer generalizes poorly (Sec.~\ref{sec:g1}),
 the load-bearing component is an \emph{output verifier} with three checks:
 \begin{itemize}
-\item \textbf{Decision floor.} The trusted evidence independently induces a minimum
-restrictive level for the transaction (for example, a confirmed proxy-mediated
-allowance increase to an unverified spender floors the decision at \textsc{block}).
-The verifier clamps the reasoner's output to be no less restrictive than this floor.
+\item \textbf{Decision floor.} The trusted evidence, scored and thresholded without
+any reasoner input, independently induces a decision for the transaction. The
+verifier returns the stricter of this evidence decision and the reasoner's proposal,
+so the reasoner's output can never be less restrictive than the floor.
 A downgrade attack therefore cannot succeed: the most an injected instruction can do
 is argue for a \emph{more} restrictive decision, which is safe.
-\item \textbf{Evidence checklist.} Each decision must cite the specific trusted
-findings that justify it. A reasoner that reaches \textsc{allow} without the evidence
-an allow requires is overridden to \textsc{escalate}, closing the ``confident but
-unsupported'' path that injection tends to exploit.
+\item \textbf{Evidence checklist.} The assessment step emits a list of evidence the
+transaction type requires. If any item is missing and the decision is not already
+\textsc{block}, the verifier raises it to at least \textsc{escalate}, closing the
+``confident but uninvestigated'' path that a truncation attack tries to open.
 \item \textbf{Output provenance.} Any reasoner rationale that shares a long verbatim
 span with an untrusted input field is withheld, so laundered text cannot be presented
 to the user as the agent's own justification.
@@ -329,22 +333,27 @@ test-set leakage. This selection rule is deliberately conservative: a calibrator
 does not demonstrably help on held-out development folds is discarded rather than
 risked on test, so the reported ECE is never an artifact of fitting the mapping to the
 evaluation data. Two thresholds, $t_{\text{low}}=0.25$ and $t_{\text{block}}=0.475$,
-define the bands; scores below $t_{\text{low}}$ pass, scores above $t_{\text{block}}$
-block, and scores between them yield \textsc{escalate}. The thresholds themselves are
-chosen on development data to balance false-block rate against recall, and are frozen
-before any test transaction is scored. We report ECE, Brier score, false-block rate,
+define the bands; scores below $t_{\text{low}}$ pass, scores at or above
+$t_{\text{block}}$ block, and scores between them yield \textsc{escalate}. Both are
+derived from explicit budgets on development data: $t_{\text{block}}$ is the smallest
+threshold whose development false-block rate on benign transactions is at most 2\%,
+and $t_{\text{low}}$ is the lowest threshold that keeps benign transactions sent to
+human review within a 10\% budget. They are frozen before any test transaction is
+scored. We report ECE, Brier score, false-block rate,
 and a risk--coverage curve so that the abstention policy can be judged at every
 operating point rather than at a single threshold.
 
 \subsection{G3 --- Dynamic investigation}
 The \textsc{PolicyPlanner} selects the next tool from the current evidence, following a
-small set of data-dependent rules: decode first; look up the counterparty's
-signature and reputation; resolve a proxy (via its EIP-1967 storage
-slots~\cite{eip1967}) only when the decoded code indicates indirection; inspect
-allowance only for approval-bearing calldata; and simulate only when the preceding
-evidence leaves the decision undetermined. The loop stops as soon as the evidence
-determines a decision, so cheap, decisive cases finish in one or two calls while
-ambiguous ones trigger deeper investigation. The \textsc{FixedPlanner} always runs the
+small set of data-dependent rules: decode first; look up the target address and every
+counterparty the call names; resolve a proxy (via its EIP-1967 storage
+slots~\cite{eip1967}) only when the lookup reports one; re-decode with a verified ABI
+when the selector is unknown; simulate only when static analysis is inconclusive
+(unknown selector, unverified contract, or an unverified or recently changed proxy
+implementation); look up any destination the simulation reveals that the call never
+named; and inspect allowance only when the call pulls tokens from another owner. The
+loop stops when no rule fires, so simple cases finish in a few calls while ambiguous
+ones trigger deeper investigation. The \textsc{FixedPlanner} always runs the
 full tool sequence regardless of evidence, isolating the value of dynamic selection:
 any accuracy difference between the two is attributable to \emph{when} tools run, and
 any tool-count difference to the planner skipping work that would not change the
@@ -391,8 +400,8 @@ particular the three held-out attack families and the test-only injection templa
 is scored exactly once per reported configuration. Injection templates are disjoint
 between development and test by construction, so a sanitizer cannot be credited for
 matching phrasing it was tuned on, and the held-out families let us separate
-generalization from pattern memorization. Confidence intervals on F1 are computed by
-the standard normal approximation over the test transactions. This discipline is what
+generalization from pattern memorization. Confidence intervals on F1 are bootstrap
+intervals (1{,}000 resamples of the test transactions, fixed seed). This discipline is what
 makes the gap between development and test behavior --- most visibly the sanitizer's
 collapse from 1.00 to 0.20 screening recall (Sec.~\ref{sec:g1}) --- observable rather
 than hidden, and it is the reason the headline numbers can be reproduced from the
@@ -439,9 +448,9 @@ threshold tuning: the baseline's errors are structural. It blocks benign unlimit
 approvals to verified routers and permits to Permit2 because it pattern-matches on
 calldata shape, whereas the agent resolves the counterparty's reputation and
 simulates the state change before deciding. The oracle base-paper detector sits
-between the two: precise but blind to anything outside the contract-side ACT pattern,
-so it never flags phishing transfers or poisoned-address interactions that carry no
-approve/\texttt{transferFrom} step.
+between the two: precise, but it flags a transaction only when a contract it touches
+or empowers carries the ACT pattern, so every malicious transaction that involves no
+ACT-flagged contract passes unnoticed (recall 0.624).
 
 \begin{figure}[t]
 \centering
@@ -452,7 +461,7 @@ approve/\texttt{transferFrom} step.
 \foreach \y/\v in {0/0.0,1/0.25,2/0.50,3/0.75,4/1.00}{
   \draw[gray!40] (0,\y) -- (6.2,\y);
   \draw (0,\y) -- (-0.08,\y) node[left]{\v};}
-\node[rotate=90] at (-0.75,2) {Test F1};
+\node[rotate=90] at (-1.05,2) {Test F1};
 % bars (height = F1 * 4)
 \fill[gray!55]   (0.5,0) rectangle (1.3,2.18);  \node[above] at (0.9,2.18){0.545};
 \fill[blue!30]   (2.0,0) rectangle (2.8,3.05);  \node[above] at (2.4,3.05){0.762};
@@ -500,6 +509,39 @@ Full guard        & \textbf{0.000} & 0.0 \\
 \end{tabular}
 \end{table}
 
+Table~\ref{tab:g1cat} breaks the result down by injection category and attacker
+goal. The sanitizer's test screening recall is zero for authority spoofing and
+instruction override and one third for the other three categories, and its effect on
+ASR follows that pattern: no reduction where nothing is screened, a partial reduction
+elsewhere. By goal, it lowers downgrade success (0.96 to 0.56) and rationale
+injection (0.84 to 0.68) but leaves truncation untouched (0.92). The verifier holds
+every category and every goal at zero.
+
+\begin{table}[t]
+\caption{G1 breakdown on test injections (worst-case reasoner). Screen = sanitizer
+screening recall; ASR columns by defense configuration.}
+\label{tab:g1cat}
+\centering
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+ & Screen & \multicolumn{3}{c}{ASR} \\
+\cmidrule(l){3-5}
+Category / goal & recall & None & Sanit. & Verif. \\
+\midrule
+Authority spoofing      & 0.00 & 0.93 & 0.93 & 0.00 \\
+Instruction override    & 0.00 & 0.93 & 0.93 & 0.00 \\
+Tool-output laundering  & 0.33 & 0.87 & 0.53 & 0.00 \\
+Role/reasoning spoofing & 0.33 & 0.93 & 0.60 & 0.00 \\
+Multilingual/encoded    & 0.33 & 0.87 & 0.60 & 0.00 \\
+\midrule
+Goal: downgrade         & ---  & 0.96 & 0.56 & 0.00 \\
+Goal: truncate          & ---  & 0.92 & 0.92 & 0.00 \\
+Goal: rationale         & ---  & 0.84 & 0.68 & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{E4 (G2): calibration and abstention}
 On the agent, Platt scaling does not beat the identity map on development
 cross-validation, so the identity map is kept and ECE is unchanged at 0.081; the
@@ -520,9 +562,11 @@ rather than claiming a calibration improvement the data does not support.
 \subsection{E4 (G3): dynamic investigation}
 The dynamic planner attains F1 0.966 on the full test split versus 0.940 for the
 fixed order, using 3.44 tool calls per transaction against 4.94 --- a 30\% reduction
-in tool work at higher accuracy. Both reach F1 1.000 on the held-out families, so the
-generalization benefit is in efficiency rather than accuracy on these families; we
-rate G3 \emph{partially} addressed.
+in tool work at higher accuracy. On the held-out families, however, both planners
+reach F1 1.000 with nearly identical effort (4.71 vs.\ 4.67 calls): these attacks
+need the full investigation, so the dynamic planner has nothing to skip. The measured
+benefit of dynamic selection is therefore on the full test split, not on the held-out
+families specifically, and we rate G3 \emph{partially} addressed.
 
 \subsection{E5: ablation}
 Table~\ref{tab:ablation} removes one component at a time. Removing the verifier
@@ -555,19 +599,41 @@ Fixed order (G3)   & \textbf{0.940} & 0.082 & 0.000 & \textbf{4.94} \\
 
 \subsection{E6: efficiency and reliability}
 The dynamic planner averages 3.44 tool calls (max 6) versus 4.94 (max 7) for fixed
-order, at sub-millisecond offline latency. Under injected transient tool failures the
+order; mean offline latency is below 2\,ms per transaction for both. Under injected transient tool failures the
 agent degrades gracefully with retries: at a 30\% fault rate, F1 is
 $0.948\pm0.004$ with retries versus $0.798\pm0.003$ without, and decision agreement
-with the fault-free run is 96.6\% versus 53.5\%. The gap between these two numbers is
-the practical value of the retry-and-fail-safe design: without it, nearly half of the
-decisions change under realistic tool flakiness, and the changes are not random ---
-a lookup or simulation that silently returns nothing tends to strip away exactly the
-evidence a restrictive decision depends on, biasing the no-retry agent toward unsafe
-allows. With retries the agent recovers the missing evidence; when recovery fails and
-the reasoner or a required tool is unavailable, the agent fails safe to
-\textsc{escalate} rather than committing to a decision it cannot justify. Reliability
-is thus not a separate feature but a direct consequence of the same
+with the fault-free run is 95.7\% versus 53.5\% (Table~\ref{tab:rel}; three seeds per
+cell). The gap between these two numbers is the practical value of retries: without
+them, nearly half of the decisions change at this fault rate. The direction of the
+change matters. A failed tool call leaves
+required evidence missing, and the evidence checklist turns missing evidence into
+\textsc{escalate}; at a 20\% fault rate the no-retry agent escalates 36.7\% of
+transactions against 7.2\% with retries. Tool failures therefore cost coverage and
+user friction, not silent unsafe allows. With retries the agent recovers the missing
+evidence, and when the reasoner or a required tool stays unavailable it still fails
+safe to \textsc{escalate}. Reliability thus follows from the same
 evidence-then-floor discipline that underpins G1.
+
+\begin{table}[t]
+\caption{E6 reliability under injected transient tool failures (test split, policy
+planner, mean $\pm$ std over 3 seeds). Agreement is with the fault-free decisions.}
+\label{tab:rel}
+\centering
+\small
+\begin{tabular}{@{}clccc@{}}
+\toprule
+Fault rate & Retries & F1 & Agreement & Escalation \\
+\midrule
+0\%  & 0 & $0.966\pm0.000$ & 100.0\% & 5.7\% \\
+10\% & 0 & $0.890\pm0.009$ & 83.3\% & 20.7\% \\
+10\% & 2 & $0.964\pm0.002$ & 99.7\% & 6.0\% \\
+20\% & 0 & $0.828\pm0.006$ & 65.6\% & 36.7\% \\
+20\% & 2 & $0.960\pm0.004$ & 98.5\% & 7.2\% \\
+30\% & 0 & $0.798\pm0.003$ & 53.5\% & 47.5\% \\
+30\% & 2 & $0.948\pm0.004$ & 95.7\% & 9.8\% \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Gap-resolution table}
 Table~\ref{tab:gap} summarizes the outcome per gap.
@@ -629,9 +695,10 @@ abstention band and verifier catch the resulting over-restriction.
 Second, the honest result for G2 and G3 is ``partially addressed,'' and we report it
 as such. The agent's base scores were already well-calibrated, so the calibration
 component has little to improve on the agent itself even though it clearly helps the
-weaker Phase-1 scorer; and dynamic investigation buys efficiency rather than accuracy
-on the held-out families, where both planners already reach F1 1.000. Claiming full
-resolution of these gaps would misrepresent the data.
+weaker Phase-1 scorer; and dynamic investigation improves accuracy and tool cost on
+the full test split but shows no advantage on the held-out families, where both
+planners reach F1 1.000 with the same effort. Claiming full resolution of these gaps
+would misrepresent the data.
 
 Third, G1 is the one gap we rate fully resolved, and the reason is architectural
 rather than empirical: the decision floor makes downgrade attacks fail \emph{by

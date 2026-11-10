@@ -129,6 +129,21 @@ Unless stated otherwise, they are TEST-split numbers (261 tx; 45 from held-out a
   deterministic `PolicyPlanner` remains the system of record (full 261-tx test, F1 0.966);
   the LLM row is a secondary comparison with a stated small-sample (n=12) caveat.
 
+## Iteration 7 — 2026-11-10 — Pre-submission audit (no scoring change)
+
+- **Checked:** all four test files pass; `experiments/run.py all` reproduces every
+  metric in `results/` exactly (only wall-clock latency fields differ between runs).
+- **Found:** the README and paper quoted E6 decision agreement at a 30% fault rate as
+  96.6% (README also 63.7% without retries). `results/e6_efficiency_policy.json` says
+  **95.7%** with retries and **53.5%** without. This was a transcription error.
+- **Found:** paper prose claimed tool failures bias the no-retry agent toward unsafe
+  allows, and that dynamic selection saves tool calls on held-out families. The data
+  says otherwise: failures raise ESCALATE (47.5% at a 30% fault rate without retries),
+  and on held-out families dynamic and fixed order use 4.71 vs 4.67 calls.
+- **Change:** corrected the README line and the paper text; added the E6 reliability
+  table and the per-category injection table to the paper; redrew Fig. 1.
+- **Effect:** no code or result changed. Text now matches `results/`.
+
 ---
 
 ## Open items
