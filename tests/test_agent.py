@@ -135,7 +135,7 @@ def test_llm_provider_fallback_nim_to_groq():
     import guardiantx.llm as llm
     calls = []
 
-    def fake_post(provider, body, retries, timeout, log):
+    def fake_post(provider, body, retries, timeout, log, rotate=False):
         calls.append(provider)
         if provider == "nim":
             raise RuntimeError("nim HTTP 429: rate limited")
@@ -151,6 +151,38 @@ def test_llm_provider_fallback_nim_to_groq():
         os.environ.clear()
         os.environ.update(env)
     assert calls == ["nim", "groq"] and r["_provider"] == "groq" and "429" in r["_errors"][0]
+
+
+def test_llm_rate_limited_provider_is_skipped_until_cooldown_ends():
+    import time
+
+    import guardiantx.llm as llm
+    calls = []
+
+    def fake_post(provider, body, retries, timeout, log, rotate=False):
+        calls.append((provider, rotate))
+        if provider == "cerebras":
+            llm._cooldown["cerebras"] = time.monotonic() + 60
+            raise llm._Busy("cerebras HTTP 429 (retry after 60s)")
+        return {"choices": [{"message": {"content": "hi"}}]}
+
+    old_post, old_order, env = llm._post, llm.ORDER, dict(os.environ)
+    llm._post, llm.ORDER = fake_post, ["cerebras", "groq"]
+    os.environ.update(CEREBRAS_API_KEY="x", GROQ_API_KEY="y")
+    llm._cooldown.clear()
+    try:
+        t0 = time.monotonic()
+        r1 = llm.chat([{"role": "user", "content": "hi"}])
+        r2 = llm.chat([{"role": "user", "content": "hi"}])
+        took = time.monotonic() - t0
+    finally:
+        llm._post, llm.ORDER = old_post, old_order
+        llm._cooldown.clear()
+        os.environ.clear()
+        os.environ.update(env)
+    # 1st call: cerebras is busy -> groq serves at once. 2nd call: cerebras is not even tried.
+    assert [p for p, _ in calls] == ["cerebras", "groq", "groq"] and all(rot for _, rot in calls)
+    assert r1["_provider"] == r2["_provider"] == "groq" and took < 1
 
 
 if __name__ == "__main__":

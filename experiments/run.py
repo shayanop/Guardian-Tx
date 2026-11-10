@@ -17,6 +17,7 @@ import argparse
 import csv
 import json
 import os
+import pickle
 import statistics
 import sys
 from collections import Counter, defaultdict
@@ -65,12 +66,36 @@ def save_traces(name, items):
             f.write(json.dumps(it, ensure_ascii=False, default=str) + "\n")
 
 
+CKPT = os.path.join(LOGS, "llm_checkpoint.pkl")  # finished LLM tx, so --resume can continue a killed run
+
+
+def _ckpt_load():
+    if not os.path.exists(CKPT):
+        return {}
+    with open(CKPT, "rb") as f:
+        return pickle.load(f)
+
+
 def run_rows(rows, cfg: AgentConfig, world=WORLD, planner_fn=None):
     out = []
+    use_ckpt = cfg.planner == "llm" and planner_fn is None and world is WORLD
+    done = _ckpt_load() if use_ckpt else {}
     for i, r in enumerate(rows):
         c = AgentConfig(**{**cfg.__dict__, "seed": cfg.seed * 100003 + i})
+        key = (r["id"], c.seed, c.sanitize, c.verify, c.simulation)
+        if key in done:
+            rep, tr = done[key]
+            out.append((r, rep, tr))
+            print(f"  [{i + 1}/{len(rows)}] {r['id']} -> {rep.decision.value} (from checkpoint)", flush=True)
+            continue
         rep, tr = run_agent(tx_from_row(r), world, c, planner=planner_fn(r) if planner_fn else None)
         out.append((r, rep, tr))
+        if use_ckpt and not tr["usage"].get("llm_errors"):  # failed tx are retried on resume
+            done[key] = (rep, tr)
+            os.makedirs(LOGS, exist_ok=True)
+            with open(CKPT + ".tmp", "wb") as f:
+                pickle.dump(done, f)
+            os.replace(CKPT + ".tmp", CKPT)
         if cfg.planner == "llm":
             progress(i + 1, len(rows), r["id"], rep.decision.value, tr["usage"])
             # streamed as it happens, so a crashed or killed LLM run still leaves its traces
@@ -429,7 +454,11 @@ def main(argv=None):
     ap.add_argument("--runs", type=int, default=None, help="repeats for E3 (default: 1 policy, 3 llm)")
     ap.add_argument("--sample", type=int, default=None,
                     help="evaluate on a fixed stratified sample of N test tx (and N injection cases); for rate-limited LLM runs")
+    ap.add_argument("--resume", action="store_true",
+                    help="LLM runs: reuse tx already finished by a killed/rate-limited run (logs/llm_checkpoint.pkl)")
     a = ap.parse_args(argv)
+    if a.planner == "llm" and not a.resume and os.path.exists(CKPT):
+        os.remove(CKPT)  # a fresh run must not inherit old results
     if a.sample:
         global TEST, INJ_LIMIT
         TEST, INJ_LIMIT = stratified_sample(TEST, a.sample), a.sample

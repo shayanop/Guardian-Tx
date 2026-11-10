@@ -1,9 +1,10 @@
 """Optional LLM layer: the agent's LLM planner + the Phase-1 explainer.
 
 Providers are OpenAI-compatible Chat Completions APIs, called with the standard
-library only (no SDK): NVIDIA NIM is primary, Groq is the fallback. A request
-goes to the first configured provider; if it still fails after its own retries
-(rate limit, 5xx, network, auth), the same request is re-sent to the next one.
+library only (no SDK). A request goes to the first configured provider that is not
+rate-limited. A 429 puts that provider on cooldown and the request moves to the next
+one at once (no sleep while another provider is free); other failures (5xx, network,
+auth) are retried, then the request is re-sent to the next provider.
 Every call records which provider/model served it, so a run that mixed models
 is visible in its trace (`usage.providers`, `usage.fallback_calls`).
 
@@ -81,8 +82,16 @@ def available() -> bool:
     return bool(configured())
 
 
-def _post(provider: str, body: dict, retries: int, timeout: float, log: list) -> dict:
-    """`log` gets one event per HTTP attempt (status, latency, wait, error) for the trace."""
+class _Busy(RuntimeError):
+    """Provider is rate-limited for now; another provider (or a later attempt) may serve."""
+
+
+_cooldown: dict[str, float] = {}  # provider -> time.monotonic() before which it is rate-limited
+
+
+def _post(provider: str, body: dict, retries: int, timeout: float, log: list, rotate: bool = False) -> dict:
+    """`log` gets one event per HTTP attempt (status, latency, wait, error) for the trace.
+    With `rotate`, a 429 raises _Busy at once (the caller has another provider) instead of sleeping."""
     cfg = PROVIDERS[provider]
     req = urllib.request.Request(
         cfg["base_url"].rstrip("/") + "/chat/completions",
@@ -115,9 +124,12 @@ def _post(provider: str, body: dict, retries: int, timeout: float, log: list) ->
                 asked = float(e.headers.get("retry-after", 0))
             except ValueError:
                 asked = 0
-            if asked > 90:  # a daily quota, not a per-minute blip: fail now so the next provider is tried
-                raise RuntimeError(f"{provider} HTTP {e.code} (retry after {asked:.0f}s): {detail!r}") from None
             wait = max(wait, asked)
+            if e.code == 429:
+                _cooldown[provider] = time.monotonic() + wait
+                # a long quota (not a per-minute blip), or another provider is free: don't sleep here
+                if asked > 90 or rotate:
+                    raise _Busy(f"{provider} HTTP 429 (retry after {wait:.0f}s): {detail!r}") from None
             reason = f"HTTP {e.code} {detail[:120]!r}"
         except (urllib.error.URLError, TimeoutError) as e:
             ev.update(status="network", ms=round((time.perf_counter() - t0) * 1000), error=str(e))
@@ -133,7 +145,9 @@ def _post(provider: str, body: dict, retries: int, timeout: float, log: list) ->
 def chat(messages: list, *, tools: list | None = None, max_tokens: int = 1024,
          temperature: float = TEMPERATURE, retries: int = 5, timeout: float = 120,
          log: list | None = None) -> dict:
-    """POST /chat/completions to the first configured provider, falling back down the list.
+    """POST /chat/completions to the first configured provider that is not rate-limited.
+    A 429 puts that provider on cooldown and the request moves to the next one at once;
+    only when every provider is cooling down does the call sleep (until the first is free).
     The response gets `_provider` / `_model` / `_errors` keys describing who served it;
     every HTTP attempt is appended to `log` if given."""
     log = [] if log is None else log
@@ -142,13 +156,30 @@ def chat(messages: list, *, tools: list | None = None, max_tokens: int = 1024,
         body["seed"] = int(SEED)
     if tools:
         body["tools"], body["tool_choice"] = tools, "auto"
-    errors = []
-    for provider in configured():
-        try:
-            resp = _post(provider, body, retries, timeout, log)
-            return {**resp, "_provider": provider, "_model": PROVIDERS[provider]["model"], "_errors": errors}
-        except RuntimeError as e:
-            errors.append(str(e))
+    errors, live = [], configured()  # `live` drops providers that fail for a non-rate-limit reason
+    for _ in range(retries + 1):
+        if not live:
+            break
+        ready = [p for p in live if _cooldown.get(p, 0) <= time.monotonic()]
+        if not ready:
+            first = min(live, key=lambda p: _cooldown[p])
+            wait = _cooldown[first] - time.monotonic()
+            if wait > 90:  # every provider is on a long quota: waiting is pointless
+                break
+            log.append({"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "provider": first, "status": "cooldown",
+                        "wait_s": round(wait, 1)})
+            print(f"    all providers rate-limited; waiting {wait:.0f}s for {first}", file=sys.stderr, flush=True)
+            time.sleep(max(wait, 0))
+            ready = [first]
+        for provider in ready:
+            try:
+                resp = _post(provider, body, retries, timeout, log, rotate=len(live) > 1)
+                return {**resp, "_provider": provider, "_model": PROVIDERS[provider]["model"], "_errors": errors}
+            except _Busy as e:
+                errors.append(str(e))
+            except RuntimeError as e:
+                errors.append(str(e))
+                live.remove(provider)
     raise RuntimeError("all LLM providers failed: " + " | ".join(errors) if errors else "no LLM provider configured")
 
 
