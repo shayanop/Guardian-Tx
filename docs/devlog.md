@@ -128,6 +128,7 @@ Unless stated otherwise, they are TEST-split numbers (261 tx; 45 from held-out a
 - **Effect:** satisfies the brief's ≥3-run requirement for the LLM planner. The
   deterministic `PolicyPlanner` remains the system of record (full 261-tx test, F1 0.966);
   the LLM row is a secondary comparison with a stated small-sample (n=12) caveat.
+  *Superseded by Iteration 8 (n=45).*
 
 ## Iteration 7 — 2026-11-10 — Pre-submission audit (no scoring change)
 
@@ -143,6 +144,36 @@ Unless stated otherwise, they are TEST-split numbers (261 tx; 45 from held-out a
 - **Change:** corrected the README line and the paper text; added the E6 reliability
   table and the per-category injection table to the paper; redrew Fig. 1.
 - **Effect:** no code or result changed. Text now matches `results/`.
+
+## Iteration 8 — 2026-11-10 — LLM planner on a larger sample (n=45), rate-limit handling
+
+- **Motivation:** the n=12 LLM sample (Iteration 6) had one held-out tx and wide
+  intervals. Free-tier caps (Cerebras ~5 RPM plus an hourly cap; Groq 200k tokens/day)
+  made a larger run impossible with one provider.
+- **Change (`llm.py`, `experiments/run.py`):** calls rotate between providers serving the
+  same model (Cerebras and Groq, `gpt-oss-120b`), and a rate-limited provider is skipped
+  until its cooldown ends. `--resume` checkpoints each successful tx
+  (`logs/llm_checkpoint.pkl`, ignored by git), so an interrupted run continues instead of
+  restarting. `GUARDIANTX_MAX_WAIT` lets an unattended run sleep through an hourly quota
+  reset. NIM is excluded because it serves a different model.
+- **Failures on the way:** the first 3×45 run lost 8 tx to a local DNS outage
+  (`getaddrinfo failed`). It lost 30 more when both quotas ran out at once (Cerebras
+  hourly, Groq 198.5k/200k tokens), and those failed instantly with a misleading
+  "no LLM provider configured" error. Those results were discarded, not reported:
+  fail-safe ESCALATEs would have distorted precision and ECE. Fixed the error message,
+  added the quota wait and a test for each, then resumed. The 97 good tx came from the
+  checkpoint and the 38 failed ones were re-run.
+- **Result (test sample, 3 runs, 0/135 tx with LLM errors; 477 Cerebras + 226 Groq
+  calls):** F1 **0.893 ± 0.000**, precision **0.806 ± 0.000**, recall **1.000**,
+  false-block **0.000**, ECE **0.127 ± 0.022**, 4.01 ± 0.23 tool calls. Held-out slice
+  (n=9) F1 1.000. Identical confusion counts in every run (25 TP / 6 FP / 14 TN / 0 FN).
+  The 6 false flags are WARN/ESCALATE across nine benign categories (20% escalation).
+- **Like-for-like reference:** E3 now also scores the PolicyPlanner on the same sample
+  (`policy_same_sample`): F1 0.980, precision 0.962, ECE 0.076, 4.4% escalation. The
+  n=12 false-block mean of 0.056 (one benign block in one run) did not recur at n=45.
+- **Effect:** the paper, README and this log now report n=45. The PolicyPlanner remains
+  the system of record. The LLM planner is safe here (no misses, no false blocks) but
+  over-cautious.
 
 ---
 

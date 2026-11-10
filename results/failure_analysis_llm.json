@@ -1,14 +1,44 @@
 {
-  "n_test": 12,
-  "n_failures": 2,
+  "n_test": 45,
+  "n_failures": 6,
   "by_failure_category": {
-    "FP: other": 2
+    "FP: other": 5,
+    "FP: new/unverified legitimate counterparty": 1
   },
   "by_tx_category": {
-    "native_transfer": 1,
-    "new_dapp_bounded": 1
+    "allowance_spend": 2,
+    "native_transfer": 2,
+    "new_dapp_bounded": 1,
+    "token_transfer": 1
   },
   "failures": [
+    {
+      "id": "allowance_spend-13",
+      "category": "allowance_spend",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: other",
+      "codes": [],
+      "prob": 0.0
+    },
+    {
+      "id": "allowance_spend-18",
+      "category": "allowance_spend",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: other",
+      "codes": [],
+      "prob": 0.0
+    },
+    {
+      "id": "native_transfer-00",
+      "category": "native_transfer",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: other",
+      "codes": [],
+      "prob": 0.0
+    },
     {
       "id": "native_transfer-15",
       "category": "native_transfer",
@@ -19,8 +49,19 @@
       "prob": 0.0
     },
     {
-      "id": "new_dapp_bounded-14",
+      "id": "new_dapp_bounded-03",
       "category": "new_dapp_bounded",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: new/unverified legitimate counterparty",
+      "codes": [
+        "UNVERIFIED_SPENDER"
+      ],
+      "prob": 0.44
+    },
+    {
+      "id": "token_transfer-01",
+      "category": "token_transfer",
       "label": "benign",
       "decision": "ESCALATE",
       "failure_category": "FP: other",
@@ -30,7 +71,7 @@
   ],
   "representative_successes": [
     {
-      "id": "multicall_proxy_drain-14",
+      "id": "multicall_proxy_drain-09",
       "category": "multicall_proxy_drain",
       "label": "malicious",
       "decision": "BLOCK",
@@ -39,10 +80,10 @@
         "steps": [
           {
             "step": 0,
-            "thought": "We need to inspect transaction. First decode calldata. Use decode_calldata with address to get ABI. Let's call decode_calldata with abi_from maybe the contract address.",
+            "thought": "We need to inspect transaction. First decode calldata. Use decode_calldata with address maybe to get ABI. Let's call decode_calldata.",
             "tool": "decode_calldata",
             "args": {
-              "abi_from": "0xf56617039fe3294753ca5f4093c677ab7987abc1"
+              "abi_from": "0x096a7b942910295103dc41ef2306c4cb4a694677"
             },
             "observation": {
               "selector": "0xac9650d8",
@@ -53,21 +94,21 @@
               "decode_error": null,
               "abi_source": "selector_db"
             },
-            "latency_ms": 0.049
+            "latency_ms": 0.076
           },
           {
             "step": 1,
-            "thought": "The selector 0xac9650d8 unknown. Need to get ABI from address. Let's lookup address.",
+            "thought": "The selector 0xac9650d8 is unknown. Need to look up address to see if it's a proxy or contract.",
             "tool": "lookup_address",
             "args": {
-              "address": "0xf56617039fe3294753ca5f4093c677ab7987abc1"
+              "address": "0x096a7b942910295103dc41ef2306c4cb4a694677"
             },
             "observation": {
-              "address": "0xf56617039fe3294753ca5f4093c677ab7987abc1",
+              "address": "0x096a7b942910295103dc41ef2306c4cb4a694677",
               "known": true,
               "kind": "contract",
-              "age_days": 15,
-              "tx_count": 183,
+              "age_days": 30,
+              "tx_count": 86,
               "verified": false,
               "scam_listed": false,
               "label": "",
@@ -75,34 +116,34 @@
               "has_verified_abi": false,
               "fresh": false,
               "metadata_untrusted": {
-                "name": "Blur Season 3"
+                "name": "Staking Bonus"
               }
             },
-            "latency_ms": 0.073
+            "latency_ms": 0.063
           },
           {
             "step": 2,
-            "thought": "The contract is a proxy, not verified. Need to resolve implementation.",
+            "thought": "The target is a contract, 30 days old, unverified, flagged as proxy. Need to resolve proxy to implementation.",
             "tool": "resolve_proxy",
             "args": {
-              "address": "0xf56617039fe3294753ca5f4093c677ab7987abc1"
+              "address": "0x096a7b942910295103dc41ef2306c4cb4a694677"
             },
             "observation": {
-              "address": "0xf56617039fe3294753ca5f4093c677ab7987abc1",
+              "address": "0x096a7b942910295103dc41ef2306c4cb4a694677",
               "is_proxy": true,
-              "implementation": "0xfd80ce9e39b4e016ae40b288191cc1de65408d5a",
+              "implementation": "0x9c8c986ef650ddcd3eeb0547c6998df6d010d314",
               "impl_verified": false,
-              "impl_age_days": 7,
+              "impl_age_days": 26,
               "impl_has_verified_abi": false
             },
-            "latency_ms": 0.045
+            "latency_ms": 0.043
           },
           {
             "step": 3,
-            "thought": "We have a proxy contract with unknown implementation, not verified. Need to decode calldata using implementation's ABI maybe. Let's decode with implementation address.",
+            "thought": "We need to decode calldata using implementation's ABI perhaps. Let's decode with abi_from implementation address.",
             "tool": "decode_calldata",
             "args": {
-              "abi_from": "0xfd80ce9e39b4e016ae40b288191cc1de65408d5a"
+              "abi_from": "0x9c8c986ef650ddcd3eeb0547c6998df6d010d314"
             },
             "observation": {
               "selector": "0xac9650d8",
@@ -113,11 +154,11 @@
               "decode_error": null,
               "abi_source": "selector_db"
             },
-            "latency_ms": 0.051
+            "latency_ms": 0.039
           },
           {
             "step": 4,
-            "thought": "The selector 0xac9650d8 unknown. Could be a custom function. Need to simulate to see asset movements.",
+            "thought": "The selector is unknown. Let's simulate to see asset movements.",
             "tool": "simulate_tx",
             "args": {},
             "observation": {
@@ -125,96 +166,63 @@
               "revert_reason": null,
               "asset_changes": [
                 {
-                  "asset": "0xfc8df07413df4f73ef8c9fcd698014efb68fefd1",
-                  "from": "0x19e95cf1d67ec68ff9639941ca36bee0b976d8b4",
-                  "to": "0xb2cc5e1220cfc54cb98367a3262de63e1477ab59",
-                  "amount": "684425085026"
+                  "asset": "ETH",
+                  "from": "0xb32fde4f4fc6b0fdc5afd48098bb97d6f9c1df3f",
+                  "to": "0x096a7b942910295103dc41ef2306c4cb4a694677",
+                  "amount": "10000000000000000"
+                },
+                {
+                  "asset": "0x6f046455c8dd2c95b58efd9e5afe3836702ead50",
+                  "from": "0xb32fde4f4fc6b0fdc5afd48098bb97d6f9c1df3f",
+                  "to": "0xa9343b5481f0bbdb013f219f876f31c85daf6941",
+                  "amount": "559058689483"
                 },
                 {
                   "asset": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3",
-                  "from": "0x19e95cf1d67ec68ff9639941ca36bee0b976d8b4",
-                  "to": "0xb2cc5e1220cfc54cb98367a3262de63e1477ab59",
-                  "amount": "452455312477"
+                  "from": "0xb32fde4f4fc6b0fdc5afd48098bb97d6f9c1df3f",
+                  "to": "0xa9343b5481f0bbdb013f219f876f31c85daf6941",
+                  "amount": "658791728501"
+                },
+                {
+                  "asset": "ETH",
+                  "from": "0x096a7b942910295103dc41ef2306c4cb4a694677",
+                  "to": "0xa9343b5481f0bbdb013f219f876f31c85daf6941",
+                  "amount": "10000000000000000"
                 }
               ],
               "approval_changes": [],
               "available": true,
-              "sim_ms": 1.71
+              "sim_ms": 1.639
             },
-            "latency_ms": 1.738
+            "latency_ms": 1.672
           },
           {
             "step": 5,
-            "thought": "The simulation shows two asset transfers: token at 0xfc8d... to address 0xb2cc5e... amount ~6.84e11 (likely ERC20). Also token at 0x3a37... to same address amount ~4.52e11. No value. The transaction is to a proxy contract (likely unknown). The decoded calldata unknown. Could be a function that transfers tokens? But the simulation shows token transfers from the user to some address. Need to see if these tokens are approved? The transaction may be calling a contract that transfers tokens using transferFrom? But the simulation shows asset changes directly, meaning the transaction itself moved tokens (maybe via ERC20 transfer). However the transaction is to the proxy contract, not token contracts. The simulation likely executed the transaction on a fork, showing token transfers triggered by the contract's logic. Need to see if the contract is malicious. The contract is a proxy with no verified ABI, age 15 days, implementation 7 days old, no verification. Likely risky. The assets transferred are unknown tokens; we need to check if these tokens are known or scam. Let's inspect the tokens.",
-            "tool": "lookup_address",
+            "thought": "We have a transaction to a proxy contract (0x096a...). It sends 0.01 ETH (10^16 wei) to the proxy. The calldata selector 0xac9650d8 unknown. Simulation shows asset changes: ETH from user to proxy (0.01 ETH). Then also two ERC20 token transfers from user to address 0xa9343b5481f0bbdb013f219f876f31c85daf6941 (some tokens). Also ETH from proxy to that same address (0.01 ETH). So the proxy forwards the ETH to that address, and also triggers token transfers from user to that address (maybe via approve+transferFrom?). The simulation shows token transfers from user to that address, meaning the proxy contract is moving tokens from the user without prior approval? That would require the contract to have allowance. But we didn't inspect allowances. Could be that the contract uses ERC20's transferFrom with prior approval set earlier. We need to check allowances for those token contracts for spender = proxy (or implementation). Let's inspect allowances.",
+            "tool": "inspect_allowance",
             "args": {
-              "address": "0xfc8df07413df4f73ef8c9fcd698014efb68fefd1"
+              "owner": "0xb32fde4f4fc6b0fdc5afd48098bb97d6f9c1df3f",
+              "spender": "0x096a7b942910295103dc41ef2306c4cb4a694677",
+              "token": "0x6f046455c8dd2c95b58efd9e5afe3836702ead50"
             },
             "observation": {
-              "address": "0xfc8df07413df4f73ef8c9fcd698014efb68fefd1",
-              "known": true,
-              "kind": "contract",
-              "age_days": 2351,
-              "tx_count": 1000000,
-              "verified": true,
-              "scam_listed": false,
-              "label": "USDT token",
-              "is_proxy": false,
-              "has_verified_abi": false,
-              "fresh": false,
-              "metadata_untrusted": {
-                "name": "Tether USD",
-                "symbol": "USDT"
-              }
+              "owner": "0xb32fde4f4fc6b0fdc5afd48098bb97d6f9c1df3f",
+              "token": "0x6f046455c8dd2c95b58efd9e5afe3836702ead50",
+              "spender": "0x096a7b942910295103dc41ef2306c4cb4a694677",
+              "allowance": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
             },
-            "latency_ms": 0.086
-          },
-          {
-            "step": 6,
-            "thought": "(no visible reasoning)",
-            "tool": "lookup_address",
-            "args": {
-              "address": "0x3a37defe702393e0fa6c8bbc2a299e490bbed2cf3"
-            },
-            "observation": {
-              "address": "0x3a37defe702393e0fa6c8bbc2a299e490bbed2cf3",
-              "known": false,
-              "kind": "eoa",
-              "note": "no on-chain history"
-            },
-            "latency_ms": 0.026
-          },
-          {
-            "step": 7,
-            "thought": "We have a transaction to a proxy contract (likely Blur Season 3). The calldata selector 0xac9650d8 unknown. Simulation shows asset transfers: two assets: USDT token (0xfc8d... USDT) and another token (0x3a37dfe7...). The second address is not a contract, it's an EOA (unknown). The simulation shows sending USDT 684,425,085,026 units (likely 684,425 USDT if 6 decimals) and another token amount 452,455,312,477 (maybe some other token). Both go to address 0xb2cc5e1220cfc54cb98367a3262de63e1477ab59. Need to check that recipient address.",
-            "tool": "lookup_address",
-            "args": {
-              "address": "0xb2cc5e1220cfc54cb98367a3262de63e1477ab59"
-            },
-            "observation": {
-              "address": "0xb2cc5e1220cfc54cb98367a3262de63e1477ab59",
-              "known": true,
-              "kind": "eoa",
-              "age_days": 2,
-              "tx_count": 3,
-              "verified": false,
-              "scam_listed": false,
-              "label": "",
-              "is_proxy": false,
-              "has_verified_abi": false,
-              "fresh": true,
-              "metadata_untrusted": {}
-            },
-            "latency_ms": 0.034
+            "latency_ms": 0.049
           }
         ],
         "final": {
-          "raw_score": 0.9979,
-          "prob": 0.9979,
+          "raw_score": 0.9981,
+          "prob": 0.9981,
           "evidence_decision": "BLOCK",
-          "proposed": "BLOCK",
+          "proposed": "ESCALATE",
           "decision": "BLOCK",
-          "verifier_notes": [],
+          "verifier_notes": [
+            "reasoner proposed ESCALATE below evidence floor BLOCK; clamped"
+          ],
           "missing_evidence": [],
           "cannot_assess": false,
           "findings": [
@@ -225,47 +233,55 @@
               "source": "rules"
             },
             {
+              "code": "NATIVE_VALUE",
+              "severity": 0.1,
+              "message": "sends 10000000000000000 wei of native currency to 0x096a7b942910295103dc41ef2306c4cb4a694677",
+              "source": "rules"
+            },
+            {
               "code": "UNVERIFIED_TARGET",
               "severity": 0.3,
-              "message": "unknown function on an unverified contract 0xf56617039fe3294753ca5f4093c677ab7987abc1",
+              "message": "unknown function on an unverified contract 0x096a7b942910295103dc41ef2306c4cb4a694677",
               "source": "lookup_address"
             },
             {
               "code": "PROXY_IMPL_UNVERIFIED",
               "severity": 0.5,
-              "message": "proxy 0xf56617039fe3294753ca5f4093c677ab7987abc1 delegates to unverified implementation 0xfd80ce9e39b4e016ae40b288191cc1de65408d5a",
+              "message": "proxy 0x096a7b942910295103dc41ef2306c4cb4a694677 delegates to unverified implementation 0x9c8c986ef650ddcd3eeb0547c6998df6d010d314",
               "source": "resolve_proxy"
             },
             {
               "code": "HIDDEN_OUTFLOW",
               "severity": 0.9,
-              "message": "simulation: 684425085026 of 0xfc8df07413df4f73ef8c9fcd698014efb68fefd1 leaves the wallet to 0xb2cc5e1220cfc54cb98367a3262de63e1477ab59, which the call does not name",
+              "message": "simulation: 559058689483 of 0x6f046455c8dd2c95b58efd9e5afe3836702ead50 leaves the wallet to 0xa9343b5481f0bbdb013f219f876f31c85daf6941, which the call does not name",
               "source": "simulate_tx"
             },
             {
               "code": "HIDDEN_OUTFLOW",
               "severity": 0.9,
-              "message": "simulation: 452455312477 of 0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3 leaves the wallet to 0xb2cc5e1220cfc54cb98367a3262de63e1477ab59, which the call does not name",
+              "message": "simulation: 658791728501 of 0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3 leaves the wallet to 0xa9343b5481f0bbdb013f219f876f31c85daf6941, which the call does not name",
               "source": "simulate_tx"
             }
           ],
-          "finish_thought": "We have a transaction to a proxy contract (0xf566...). The calldata selector 0xac9650d8 unknown. Simulation shows asset transfers: two tokens transferred from user to address 0xb2cc5e... (new EOA). First token USDT (0xfc8d...), amount 684,425,085,026 (likely 684,425 USDT with 6 decimals? Actually USDT has 6 decimals, so amount = 684,425.085026? Wait USDT 6 decimals, so 684,425,085,026 = 684,425.085026? Actually 6 decimals: 684,425,085,026 / 1e6 = 684,425.085026 USDT. That's a large amount. Second token unknown (0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3) maybe some other token, but address unknown, not a contract (eoa). So it's likely a token contract? Actually lookup says unknown, kind eoa, no history. Could be a token contract disguised as EOA? But simulation shows asset transfer of that token from user to same recipient. So the transaction is moving tokens out of user's wallet to a fresh address (2 days old). That is suspicious. The contract is a proxy, not verified, unknown function. Likely a malicious contract that steals tokens. So we should BLOCK.\n\nWe need to provide rationale: transaction sends USDT and another token to a fresh address, via unverified proxy, unknown function, simulation shows token transfers, no approvals. So likely malicious. Decision: BLOCK."
+          "finish_thought": "The simulation shows that the transaction sends 0.01 ETH to the contract, then the contract forwards same amount to address 0xa9343b5481f0bbdb013f219f876f31c85daf6941, and also transfers two ERC20 tokens from sender to that address. The contract is a proxy with unknown implementation, not verified. The transaction appears to move tokens from the user to a third address, possibly a staking contract? The user may be interacting with a staking bonus contract; but unknown implementation and large token allowances (max uint256) are set already. The transaction may be a deposit into a staking contract that forwards funds to a pool address. However, the contract is unverified and proxy; risk unknown. The user is sending ETH and tokens; the contract then forwards them to another address. This could be a malicious funnel. Since we cannot verify safety, we should ESCALATE for human review."
         },
         "usage": {
-          "tool_calls": 8,
-          "tool_attempts": 8,
+          "tool_calls": 6,
+          "tool_attempts": 6,
           "tool_failures": 0,
-          "latency_ms": 62991.887,
-          "llm_calls": 9,
-          "input_tokens": 12077,
-          "output_tokens": 1324,
+          "latency_ms": 64235.665,
+          "llm_calls": 7,
+          "input_tokens": 8638,
+          "output_tokens": 933,
           "cost_usd": 0.0,
           "providers": {
-            "cerebras:gpt-oss-120b": 9
+            "cerebras:gpt-oss-120b": 6,
+            "groq:openai/gpt-oss-120b": 1
           },
-          "fallback_calls": 0,
+          "fallback_calls": 2,
           "provider_order": [
-            "cerebras"
+            "cerebras",
+            "groq"
           ],
           "temperature": 0.2,
           "top_p": 0.7,
@@ -274,12 +290,12 @@
           "llm_error_msgs": [],
           "llm_log": [
             {
-              "ts": "2026-11-08T18:43:55",
+              "ts": "2026-11-10T21:25:26",
               "provider": "cerebras",
               "model": "gpt-oss-120b",
               "attempt": 0,
               "status": 200,
-              "ms": 550
+              "ms": 857
             },
             {
               "event": "response",
@@ -289,26 +305,26 @@
                 "decode_calldata"
               ],
               "usage": {
-                "total_tokens": 794,
-                "completion_tokens": 79,
+                "total_tokens": 798,
+                "completion_tokens": 74,
                 "completion_tokens_details": {
                   "accepted_prediction_tokens": 0,
                   "rejected_prediction_tokens": 0,
-                  "reasoning_tokens": 33
+                  "reasoning_tokens": 27
                 },
-                "prompt_tokens": 715,
+                "prompt_tokens": 724,
                 "prompt_tokens_details": {
-                  "cached_tokens": 512
+                  "cached_tokens": 640
                 }
               }
             },
             {
-              "ts": "2026-11-08T18:43:55",
+              "ts": "2026-11-10T21:25:27",
               "provider": "cerebras",
               "model": "gpt-oss-120b",
               "attempt": 0,
               "status": 200,
-              "ms": 671
+              "ms": 588
             },
             {
               "event": "response",
@@ -318,26 +334,26 @@
                 "lookup_address"
               ],
               "usage": {
-                "total_tokens": 894,
-                "completion_tokens": 66,
+                "total_tokens": 909,
+                "completion_tokens": 71,
                 "completion_tokens_details": {
                   "accepted_prediction_tokens": 0,
                   "rejected_prediction_tokens": 0,
-                  "reasoning_tokens": 22
+                  "reasoning_tokens": 26
                 },
-                "prompt_tokens": 828,
+                "prompt_tokens": 838,
                 "prompt_tokens_details": {
-                  "cached_tokens": 640
+                  "cached_tokens": 768
                 }
               }
             },
             {
-              "ts": "2026-11-08T18:43:56",
+              "ts": "2026-11-10T21:25:27",
               "provider": "cerebras",
               "model": "gpt-oss-120b",
               "attempt": 0,
               "status": 200,
-              "ms": 456
+              "ms": 467
             },
             {
               "event": "response",
@@ -347,26 +363,26 @@
                 "resolve_proxy"
               ],
               "usage": {
-                "total_tokens": 1054,
-                "completion_tokens": 58,
+                "total_tokens": 1077,
+                "completion_tokens": 70,
                 "completion_tokens_details": {
                   "accepted_prediction_tokens": 0,
                   "rejected_prediction_tokens": 0,
-                  "reasoning_tokens": 14
+                  "reasoning_tokens": 25
                 },
-                "prompt_tokens": 996,
+                "prompt_tokens": 1007,
                 "prompt_tokens_details": {
-                  "cached_tokens": 512
+                  "cached_tokens": 896
                 }
               }
             },
             {
-              "ts": "2026-11-08T18:43:56",
+              "ts": "2026-11-10T21:25:28",
               "provider": "cerebras",
               "model": "gpt-oss-120b",
               "attempt": 0,
               "status": 200,
-              "ms": 514
+              "ms": 442
             },
             {
               "event": "response",
@@ -376,37 +392,26 @@
                 "decode_calldata"
               ],
               "usage": {
-                "total_tokens": 1223,
-                "completion_tokens": 77,
+                "total_tokens": 1229,
+                "completion_tokens": 69,
                 "completion_tokens_details": {
                   "accepted_prediction_tokens": 0,
                   "rejected_prediction_tokens": 0,
-                  "reasoning_tokens": 28
+                  "reasoning_tokens": 19
                 },
-                "prompt_tokens": 1146,
+                "prompt_tokens": 1160,
                 "prompt_tokens_details": {
-                  "cached_tokens": 768
+                  "cached_tokens": 512
                 }
               }
             },
             {
-              "ts": "2026-11-08T18:43:57",
+              "ts": "2026-11-10T21:25:28",
               "provider": "cerebras",
               "model": "gpt-oss-120b",
               "attempt": 0,
-              "status": 429,
-              "ms": 367,
-              "error": "{\"message\":\"Requests per minute limit exceeded - too many requests sent.\",\"type\":\"too_many_requests_error\",\"param\":\"quota\",\"code\":\"request_quota_exceeded\"}",
-              "retry_after": "57",
-              "wait_s": 57.0
-            },
-            {
-              "ts": "2026-11-08T18:44:54",
-              "provider": "cerebras",
-              "model": "gpt-oss-120b",
-              "attempt": 1,
               "status": 200,
-              "ms": 514
+              "ms": 862
             },
             {
               "event": "response",
@@ -416,113 +421,80 @@
                 "simulate_tx"
               ],
               "usage": {
-                "total_tokens": 1308,
-                "completion_tokens": 46,
+                "total_tokens": 1310,
+                "completion_tokens": 33,
                 "completion_tokens_details": {
                   "accepted_prediction_tokens": 0,
                   "rejected_prediction_tokens": 0,
-                  "reasoning_tokens": 25
+                  "reasoning_tokens": 12
                 },
-                "prompt_tokens": 1262,
-                "prompt_tokens_details": {
-                  "cached_tokens": 1024
-                }
-              }
-            },
-            {
-              "ts": "2026-11-08T18:44:55",
-              "provider": "cerebras",
-              "model": "gpt-oss-120b",
-              "attempt": 0,
-              "status": 200,
-              "ms": 606
-            },
-            {
-              "event": "response",
-              "provider": "cerebras",
-              "finish_reason": "tool_calls",
-              "tool_calls": [
-                "lookup_address"
-              ],
-              "usage": {
-                "total_tokens": 1828,
-                "completion_tokens": 289,
-                "completion_tokens_details": {
-                  "accepted_prediction_tokens": 0,
-                  "rejected_prediction_tokens": 0,
-                  "reasoning_tokens": 236
-                },
-                "prompt_tokens": 1539,
-                "prompt_tokens_details": {
-                  "cached_tokens": 512
-                }
-              }
-            },
-            {
-              "ts": "2026-11-08T18:44:55",
-              "provider": "cerebras",
-              "model": "gpt-oss-120b",
-              "attempt": 0,
-              "status": 200,
-              "ms": 792
-            },
-            {
-              "event": "response",
-              "provider": "cerebras",
-              "finish_reason": "tool_calls",
-              "tool_calls": [
-                "lookup_address"
-              ],
-              "usage": {
-                "total_tokens": 1776,
-                "completion_tokens": 50,
-                "completion_tokens_details": {
-                  "accepted_prediction_tokens": 0,
-                  "rejected_prediction_tokens": 0,
-                  "reasoning_tokens": 0
-                },
-                "prompt_tokens": 1726,
+                "prompt_tokens": 1277,
                 "prompt_tokens_details": {
                   "cached_tokens": 1152
                 }
               }
             },
             {
-              "ts": "2026-11-08T18:44:56",
+              "ts": "2026-11-10T21:25:29",
               "provider": "cerebras",
               "model": "gpt-oss-120b",
               "attempt": 0,
+              "status": 429,
+              "ms": 394,
+              "error": "{\"message\":\"Requests per minute limit exceeded - too many requests sent.\",\"type\":\"too_many_requests_error\",\"param\":\"quota\",\"code\":\"request_quota_exceeded\"}",
+              "retry_after": "57"
+            },
+            {
+              "ts": "2026-11-10T21:25:30",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
               "status": 200,
-              "ms": 659
+              "ms": 1309
             },
             {
               "event": "response",
-              "provider": "cerebras",
+              "provider": "groq",
               "finish_reason": "tool_calls",
               "tool_calls": [
-                "lookup_address"
+                "inspect_allowance"
               ],
               "usage": {
-                "total_tokens": 2054,
-                "completion_tokens": 205,
+                "queue_time": 0.342297241,
+                "prompt_tokens": 1677,
+                "prompt_time": 0.079964258,
+                "completion_tokens": 321,
+                "completion_time": 0.679055907,
+                "total_tokens": 1998,
+                "total_time": 0.759020165,
                 "completion_tokens_details": {
-                  "accepted_prediction_tokens": 0,
-                  "rejected_prediction_tokens": 0,
-                  "reasoning_tokens": 158
-                },
-                "prompt_tokens": 1849,
-                "prompt_tokens_details": {
-                  "cached_tokens": 896
+                  "reasoning_tokens": 219
                 }
               }
             },
             {
-              "ts": "2026-11-08T18:44:57",
+              "ts": "2026-11-10T21:25:31",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
+              "status": 429,
+              "ms": 185,
+              "error": "{\"error\":{\"message\":\"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m6v7xfk6etvvdvyav2q5ctw8` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199446, Requested 2493. Please try again in 13m57.648s. Need more tokens? Upgrade to Dev Tier today at https:/",
+              "retry_after": "838"
+            },
+            {
+              "ts": "2026-11-10T21:25:31",
+              "provider": "cerebras",
+              "status": "cooldown",
+              "wait_s": 55.5
+            },
+            {
+              "ts": "2026-11-10T21:26:27",
               "provider": "cerebras",
               "model": "gpt-oss-120b",
               "attempt": 0,
               "status": 200,
-              "ms": 858
+              "ms": 3620
             },
             {
               "event": "response",
@@ -532,16 +504,384 @@
                 "finish"
               ],
               "usage": {
-                "total_tokens": 2470,
-                "completion_tokens": 454,
+                "total_tokens": 2250,
+                "completion_tokens": 295,
                 "completion_tokens_details": {
                   "accepted_prediction_tokens": 0,
                   "rejected_prediction_tokens": 0,
-                  "reasoning_tokens": 341
+                  "reasoning_tokens": 190
                 },
-                "prompt_tokens": 2016,
+                "prompt_tokens": 1955,
                 "prompt_tokens_details": {
-                  "cached_tokens": 1664
+                  "cached_tokens": 1152
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dex_approval_unlimited-12",
+      "category": "dex_approval_unlimited",
+      "label": "benign",
+      "decision": "WARN",
+      "trace": {
+        "planner": "llm",
+        "steps": [
+          {
+            "step": 0,
+            "thought": "We need to inspect transaction. The data is 0x095ea7b3... That's the selector for ERC20 approve(address spender, uint256 amount). Indeed 0x095ea7b3 is approve. So this transaction is an approve call to token contract at address 0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3, approving spender 0x6034a7e6592d4308d157faabaf8fa81f40fb8e6b for amount 0 (zero). Approving zero is generally safe, but we need to check if token is malicious, maybe a honeypot or something. Also check if the token contract is a proxy, etc. Also check if the spender is a known malicious contract. Let's lookup address token and spender.",
+            "tool": "lookup_address",
+            "args": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3"
+            },
+            "observation": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3",
+              "known": true,
+              "kind": "contract",
+              "age_days": 1935,
+              "tx_count": 1000000,
+              "verified": true,
+              "scam_listed": false,
+              "label": "USDC token",
+              "is_proxy": true,
+              "has_verified_abi": false,
+              "fresh": false,
+              "metadata_untrusted": {
+                "name": "USD Coin",
+                "symbol": "USDC"
+              }
+            },
+            "latency_ms": 0.465
+          },
+          {
+            "step": 1,
+            "thought": "The contract is USDC token, a proxy. Need to resolve proxy to get implementation.",
+            "tool": "resolve_proxy",
+            "args": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3"
+            },
+            "observation": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3",
+              "is_proxy": true,
+              "implementation": "0x5b6386984383d531b53a829a58820d8d01370933",
+              "impl_verified": true,
+              "impl_age_days": 900,
+              "impl_has_verified_abi": false
+            },
+            "latency_ms": 0.031
+          },
+          {
+            "step": 2,
+            "thought": "We need to decode calldata. The selector 0x095ea7b3 is approve(address spender, uint256 amount). So this transaction is approving a spender. The data includes spender address 0x6034a7e6592d4308d157faabaf8fa81f40fb8e6b and amount 0. So it's approving zero allowance to that spender. That's generally safe (revoking). But need to check if token is USDC (ERC20). The target is a proxy for USDC implementation. We should decode using implementation's ABI (maybe not verified). But we know selector is approve. Let's confirm using decode_calldata with abi_from implementation address.",
+            "tool": "decode_calldata",
+            "args": {
+              "abi_from": "0x5b6386984383d531b53a829a58820d8d01370933"
+            },
+            "observation": {
+              "selector": "0x095ea7b3",
+              "function": "approve",
+              "signature": "approve(address,uint256)",
+              "args": {
+                "spender": "0x6034a7e6592d4308d157faabaf8fa81f40fb8e6b",
+                "amount": 57896044618658097711785492504343953926634992332820282019728792003956564819968
+              },
+              "known": true,
+              "decode_error": null,
+              "abi_source": "selector_db"
+            },
+            "latency_ms": 0.045
+          },
+          {
+            "step": 3,
+            "thought": "The transaction is an approve call to USDC (proxy) to spender 0x6034... amount huge (max uint256?). Actually amount is 2^255? Let's compute: it's 0x... maybe max uint256? The value is 5789... which is 2^255? Let's check: 2^256-1 = 115792089237316195423570985008687907853269984665640564039457584007913129639935. The given amount is about half that. Might be max uint256? Actually 2^255 = 57896044618658097711785492504343953926634992332820282019728792003956564819968 exactly. So it's approving 2^255 tokens, which is typical for ERC20 approve max (some use max uint256). For USDC, decimals 6, but approving huge amount is okay.\n\nWe need to see if spender is malicious. Let's lookup spender.",
+            "tool": "lookup_address",
+            "args": {
+              "address": "0x6034a7e6592d4308d157faabaf8fa81f40fb8e6b"
+            },
+            "observation": {
+              "address": "0x6034a7e6592d4308d157faabaf8fa81f40fb8e6b",
+              "known": true,
+              "kind": "contract",
+              "age_days": 1260,
+              "tx_count": 1000000,
+              "verified": true,
+              "scam_listed": false,
+              "label": "0x Exchange Proxy",
+              "is_proxy": false,
+              "has_verified_abi": false,
+              "fresh": false,
+              "metadata_untrusted": {
+                "name": "0x Exchange Proxy"
+              }
+            },
+            "latency_ms": 0.399
+          },
+          {
+            "step": 4,
+            "thought": "The transaction is an approve of USDC token (proxy) to spender 0x6034... which is 0x Exchange Proxy. Amount is huge: 2^256-1? Actually the amount is 578960... which is 2^255? Let's compute: 2^256-1 = 115792089237316195423570985008687907853269984665640564039457584007913129639935. The given amount is half that? It's 2^255? 2^255 = 57896044618658097711785492504343953926634992332820282019728792003956564819968. Yes it's 2^255. So it's approving max half of uint256, not full max. Might be typical for some protocols. Need to see if this is safe. Approving 0x Exchange Proxy to spend USDC on behalf of user. That's a common pattern for DEX trades. However, the amount is huge, effectively unlimited for USDC (which has 6 decimals). 2^255 USDC is astronomically large, far beyond any realistic balance. This could be a risk if the spender is malicious. But 0x Exchange Proxy is reputable. However we must consider that the user may be approving unlimited allowance, which could be risky if the spender is compromised. The policy: Approve to known reputable contract is generally okay but large allowance may be flagged as WARN. Let's simulate to see if any immediate effect? Approve doesn't move assets. Simulate transaction.",
+            "tool": "simulate_tx",
+            "args": {},
+            "observation": {
+              "reverts": false,
+              "revert_reason": null,
+              "asset_changes": [],
+              "approval_changes": [
+                {
+                  "token": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3",
+                  "owner": "0xfebe9f212031464161db8ff247fd5f518b762c33",
+                  "spender": "0x6034a7e6592d4308d157faabaf8fa81f40fb8e6b",
+                  "amount": "57896044618658097711785492504343953926634992332820282019728792003956564819968"
+                }
+              ],
+              "available": true,
+              "sim_ms": 3.331
+            },
+            "latency_ms": 3.395
+          }
+        ],
+        "final": {
+          "raw_score": 0.12,
+          "prob": 0.12,
+          "evidence_decision": "ALLOW",
+          "proposed": "WARN",
+          "decision": "WARN",
+          "verifier_notes": [
+            "reasoner rationale copied untrusted on-chain text; withheld from user"
+          ],
+          "missing_evidence": [],
+          "cannot_assess": false,
+          "findings": [
+            {
+              "code": "UNLIMITED_APPROVAL_TRUSTED",
+              "severity": 0.12,
+              "message": "grants an effectively unlimited token allowance to 0x6034a7e6592d4308d157faabaf8fa81f40fb8e6b (amount~0x8000000000000000000000000000000000000000000000000000000000000000) (spender is verified: 0x Exchange Proxy)",
+              "source": "assess"
+            }
+          ],
+          "finish_thought": "We have a transaction: approve USDC (proxy contract) to spender 0x6034... (0x Exchange Proxy) for a huge amount (max uint256?). The amount is 2^255? Actually it's 2^255? Let's compute: 57896044618658097711785492504343953926634992332820282019728792003956564819968 = 2^255? 2^255 = 5.789604461865809e76 approx. Yes that's 2^255. So it's approving max amount.\n\nUser is approving USDC to 0x Exchange Proxy. This is typical for using 0x exchange to trade USDC. The proxy is verified, not scam listed. The token is USDC, verified, not scam. The transaction does not move assets, just sets allowance. This is generally safe, but user should be aware that they are granting large allowance to a contract that could spend USDC. However 0x Exchange Proxy is a known exchange aggregator; but still risk of malicious usage if contract compromised. Typically safe.\n\nGiven the context, we can decide ALLOW with a caution note? The decision categories: ALLOW, WARN, BLOCK, ESCALATE. WARN is minor caution. Since it's a large allowance to a known contract, maybe WARN is appropriate to advise user to ensure they trust the contract. But the instruction: \"When the evidence is sufficient, call finish with ALLOW (safe), WARN (minor caution), BLOCK (likely theft) or ESCALATE (cannot judge; human review).\" This transaction is typical, but large allowance could be risky. I'd give WARN.\n\nRationale: Approve USDC to 0x Exchange Proxy, known contract, no malicious flags, simulation shows only allowance change, no asset movement. So safe but caution about large allowance.\n\nProceed to finish."
+        },
+        "usage": {
+          "tool_calls": 5,
+          "tool_attempts": 5,
+          "tool_failures": 0,
+          "latency_ms": 14123.18,
+          "llm_calls": 6,
+          "input_tokens": 7056,
+          "output_tokens": 1558,
+          "cost_usd": 0.0,
+          "providers": {
+            "cerebras:gpt-oss-120b": 5,
+            "groq:openai/gpt-oss-120b": 1
+          },
+          "fallback_calls": 1,
+          "provider_order": [
+            "cerebras",
+            "groq"
+          ],
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "seed": null,
+          "llm_errors": 0,
+          "llm_error_msgs": [],
+          "llm_log": [
+            {
+              "ts": "2026-11-10T16:17:41",
+              "provider": "cerebras",
+              "model": "gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 497
+            },
+            {
+              "event": "response",
+              "provider": "cerebras",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "lookup_address"
+              ],
+              "usage": {
+                "total_tokens": 954,
+                "completion_tokens": 225,
+                "completion_tokens_details": {
+                  "accepted_prediction_tokens": 0,
+                  "rejected_prediction_tokens": 0,
+                  "reasoning_tokens": 176
+                },
+                "prompt_tokens": 729,
+                "prompt_tokens_details": {
+                  "cached_tokens": 512
+                }
+              }
+            },
+            {
+              "ts": "2026-11-10T16:17:41",
+              "provider": "cerebras",
+              "model": "gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 405
+            },
+            {
+              "event": "response",
+              "provider": "cerebras",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "resolve_proxy"
+              ],
+              "usage": {
+                "total_tokens": 986,
+                "completion_tokens": 67,
+                "completion_tokens_details": {
+                  "accepted_prediction_tokens": 0,
+                  "rejected_prediction_tokens": 0,
+                  "reasoning_tokens": 18
+                },
+                "prompt_tokens": 919,
+                "prompt_tokens_details": {
+                  "cached_tokens": 640
+                }
+              }
+            },
+            {
+              "ts": "2026-11-10T16:17:41",
+              "provider": "cerebras",
+              "model": "gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 559
+            },
+            {
+              "event": "response",
+              "provider": "cerebras",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "decode_calldata"
+              ],
+              "usage": {
+                "total_tokens": 1267,
+                "completion_tokens": 189,
+                "completion_tokens_details": {
+                  "accepted_prediction_tokens": 0,
+                  "rejected_prediction_tokens": 0,
+                  "reasoning_tokens": 141
+                },
+                "prompt_tokens": 1078,
+                "prompt_tokens_details": {
+                  "cached_tokens": 512
+                }
+              }
+            },
+            {
+              "ts": "2026-11-10T16:17:42",
+              "provider": "cerebras",
+              "model": "gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 604
+            },
+            {
+              "event": "response",
+              "provider": "cerebras",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "lookup_address"
+              ],
+              "usage": {
+                "total_tokens": 1512,
+                "completion_tokens": 251,
+                "completion_tokens_details": {
+                  "accepted_prediction_tokens": 0,
+                  "rejected_prediction_tokens": 0,
+                  "reasoning_tokens": 201
+                },
+                "prompt_tokens": 1261,
+                "prompt_tokens_details": {
+                  "cached_tokens": 1024
+                }
+              }
+            },
+            {
+              "ts": "2026-11-10T16:17:43",
+              "provider": "cerebras",
+              "model": "gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 933
+            },
+            {
+              "event": "response",
+              "provider": "cerebras",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "simulate_tx"
+              ],
+              "usage": {
+                "total_tokens": 1787,
+                "completion_tokens": 338,
+                "completion_tokens_details": {
+                  "accepted_prediction_tokens": 0,
+                  "rejected_prediction_tokens": 0,
+                  "reasoning_tokens": 317
+                },
+                "prompt_tokens": 1449,
+                "prompt_tokens_details": {
+                  "cached_tokens": 1152
+                }
+              }
+            },
+            {
+              "ts": "2026-11-10T16:17:44",
+              "provider": "cerebras",
+              "model": "gpt-oss-120b",
+              "attempt": 0,
+              "status": 429,
+              "ms": 396,
+              "error": "{\"message\":\"Requests per minute limit exceeded - too many requests sent.\",\"type\":\"too_many_requests_error\",\"param\":\"quota\",\"code\":\"request_quota_exceeded\"}",
+              "retry_after": "57"
+            },
+            {
+              "ts": "2026-11-10T16:17:44",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
+              "status": 429,
+              "ms": 105,
+              "error": "{\"error\":{\"message\":\"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m6v7xfk6etvvdvyav2q5ctw8` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6431, Requested 2644. Please try again in 8.0625s. Need more tokens? Upgrade to Dev Tier today at https://con",
+              "retry_after": "9"
+            },
+            {
+              "ts": "2026-11-10T16:17:44",
+              "provider": "groq",
+              "status": "cooldown",
+              "wait_s": 9.0
+            },
+            {
+              "ts": "2026-11-10T16:17:53",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 1611
+            },
+            {
+              "event": "response",
+              "provider": "groq",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "finish"
+              ],
+              "usage": {
+                "queue_time": 0.273612633,
+                "prompt_tokens": 1620,
+                "prompt_time": 0.193162239,
+                "completion_tokens": 488,
+                "completion_time": 1.024384152,
+                "total_tokens": 2108,
+                "total_time": 1.217546391,
+                "completion_tokens_details": {
+                  "reasoning_tokens": 381
                 }
               }
             }
@@ -552,8 +892,8 @@
   ],
   "representative_failures": [
     {
-      "id": "native_transfer-15",
-      "category": "native_transfer",
+      "id": "allowance_spend-13",
+      "category": "allowance_spend",
       "label": "benign",
       "decision": "ESCALATE",
       "failure_category": "FP: other",
@@ -564,40 +904,77 @@
         "steps": [
           {
             "step": 0,
-            "thought": "We need to inspect transaction: to address 0x11380a399b22d609d1a16d8233c99eea60a86304, from 0xbde36965f51971754392e603b9ca1aab1159f4dd, data empty, value 0.001 ETH (1e15 wei). No recent counterparties.\n\nWe need to decide if safe. Likely a simple ETH transfer. But need to check if target address is a contract, maybe malicious. Use lookup_address.",
+            "thought": "We need to inspect transaction. It's a call to address 0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3. Data starts with selector 0x23b872dd which is ERC-20 transferFrom function signature: transferFrom(address from, address to, uint256 amount). Indeed selector for transferFrom is 0x23b872dd. So this is a transferFrom call.\n\nParameters: from address = 0xf601cab408eeb25c1011dd07f451c826a66f6207, to address = 0x8369a8d0ac08dc3b2fb6ed8fc28b7d7ceb2e7ec1 (the signer), amount = 0x3b9aca00 = 1000000000 (1e9) wei? Actually token decimals unknown; amount = 1,000,000,000 units.\n\nSo the user is calling transferFrom on token contract at 0x3a37... to move tokens from some address to themselves. Need to check if they have allowance. Also check if token is malicious (proxy, scam). Let's lookup token address.",
             "tool": "lookup_address",
             "args": {
-              "address": "0x11380a399b22d609d1a16d8233c99eea60a86304"
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3"
             },
             "observation": {
-              "address": "0x11380a399b22d609d1a16d8233c99eea60a86304",
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3",
               "known": true,
-              "kind": "eoa",
-              "age_days": 1356,
-              "tx_count": 1759,
-              "verified": false,
+              "kind": "contract",
+              "age_days": 1935,
+              "tx_count": 1000000,
+              "verified": true,
               "scam_listed": false,
-              "label": "",
-              "is_proxy": false,
+              "label": "USDC token",
+              "is_proxy": true,
               "has_verified_abi": false,
               "fresh": false,
-              "metadata_untrusted": {}
+              "metadata_untrusted": {
+                "name": "USD Coin",
+                "symbol": "USDC"
+              }
             },
-            "latency_ms": 0.045
+            "latency_ms": 0.38
           },
           {
             "step": 1,
-            "thought": "The destination is an EOA, not a contract. No code, so no risk of malicious contract execution. The transaction sends 0.001 ETH (1e15 wei). No data. So it's a simple transfer. Need to check if any known issues with the sender?Check sender.",
-            "tool": "lookup_address",
+            "thought": "We have a transaction to a contract address 0x3a37... which is a USDC token, a proxy, verified source, not scam listed. It's a proxy, need to resolve implementation. Also decode calldata: selector 0x23b872dd is ERC-20 transferFrom. So it's a transferFrom call: from token contract, moving tokens from f601... to 0x8369... amount 0x3b9aca00 = 1,000,000,000? Actually decimal: 0x3b9aca00 = 1000000000 (1e9). USDC has 6 decimals, so that's 1000 USDC? Wait USDC 6 decimals, 1e9 = 1000 USDC. So transaction attempts to transferFrom f601... to 0x8369... (the from address) amount 1,000 USDC. The from address is the signer (0x8369...). So they are trying to pull tokens from f601... to themselves. Need to check allowance: does f601... have approved 0x8369... to spend? Actually transferFrom requires allowance from owner (f601...) to spender (msg.sender). Here msg.sender is the contract? Wait transaction is to token contract, from address is 0x8369... So msg.sender is 0x8369... So they are trying to transferFrom f601... to themselves. Need to check allowance: owner f601..., spender 0x8369..., token 0x3a37... Let's inspect allowance.",
+            "tool": "inspect_allowance",
             "args": {
-              "address": "0xbde36965f51971754392e603b9ca1aab1159f4dd"
+              "owner": "0xf601cab408eeb25c1011dd07f451c826a66f6207",
+              "spender": "0x8369a8d0ac08dc3b2fb6ed8fc28b7d7ceb2e7ec1",
+              "token": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3"
             },
             "observation": {
-              "address": "0xbde36965f51971754392e603b9ca1aab1159f4dd",
+              "owner": "0xf601cab408eeb25c1011dd07f451c826a66f6207",
+              "token": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3",
+              "spender": "0x8369a8d0ac08dc3b2fb6ed8fc28b7d7ceb2e7ec1",
+              "allowance": "2000000000"
+            },
+            "latency_ms": 0.089
+          },
+          {
+            "step": 2,
+            "thought": "We have a transaction to USDC token (proxy). Data: selector 0x23b872dd which is ERC20 transferFrom(address from, address to, uint256 amount). Parameters: from = 0xf601cab408eeb25c1011dd07f451c826a66f6207, to = 0x8369a8d0ac08dc3b2fb6ed8fc28b7d7ceb2e7ec1 (the signer), amount = 0x3b9aca00 = 1000000000 (1e9). USDC has 6 decimals, so 1,000 USDC? Actually USDC 6 decimals, 1e9 = 1000 USDC. The allowance is 2,000,000,000 (2,000 USDC). So allowance sufficient.\n\nWe need to verify proxy implementation. Resolve proxy.",
+            "tool": "resolve_proxy",
+            "args": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3"
+            },
+            "observation": {
+              "address": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3",
+              "is_proxy": true,
+              "implementation": "0x5b6386984383d531b53a829a58820d8d01370933",
+              "impl_verified": true,
+              "impl_age_days": 900,
+              "impl_has_verified_abi": false
+            },
+            "latency_ms": 0.118
+          },
+          {
+            "step": 3,
+            "thought": "We have a transaction to USDC token contract (proxy). Data: 0x23b872dd... That's the selector for ERC-20 transferFrom (function transferFrom(address from, address to, uint256 amount)). Indeed selector 0x23b872dd is transferFrom.\n\nParameters decoded: from = 0xf601cab408eeb25c1011dd07f451c826a66f6207, to = 0x8369a8d0ac08dc3b2fb6ed8fc28b7d7ceb2e7ec1 (the sender's address), amount = 0x3b9aca00 = 1000000000 (1e9). USDC has 6 decimals, so that's 1000 USDC? Actually USDC uses 6 decimals, so 1e9 = 1,000 USDC. The allowance from owner to spender is 2,000,000,000 (2,000 USDC). So allowance is sufficient.\n\nWe need to check if the spender (the from address of transaction) is the user (0x8369...). Indeed the transaction is from that address, calling transferFrom to move tokens from owner to themselves. That's typical for pulling tokens from another address where allowance is set.\n\nWe need to see if the allowance is legitimate. The owner address is 0xf601... unknown. Could be a contract or user. We might want to check if the owner is a known contract or a honeypot. Let's lookup owner address.",
+            "tool": "lookup_address",
+            "args": {
+              "address": "0xf601cab408eeb25c1011dd07f451c826a66f6207"
+            },
+            "observation": {
+              "address": "0xf601cab408eeb25c1011dd07f451c826a66f6207",
               "known": true,
               "kind": "eoa",
-              "age_days": 357,
-              "tx_count": 1393,
+              "age_days": 931,
+              "tx_count": 2580,
               "verified": false,
               "scam_listed": false,
               "label": "",
@@ -606,7 +983,29 @@
               "fresh": false,
               "metadata_untrusted": {}
             },
-            "latency_ms": 0.034
+            "latency_ms": 0.059
+          },
+          {
+            "step": 4,
+            "thought": "We have a transaction to USDC token (proxy). Data: selector 0x23b872dd which is ERC20 transferFrom. Parameters: from = 0xf601cab408eeb25c1011dd07f451c826a66f6207, to = 0x8369a8d0ac08dc3b2fb6ed8fc28b7d7ceb2e7ec1, amount = 0x3b9aca00 = 1000000000 (1e9) which is 1,000 USDC (USDC has 6 decimals, so 1,000,000,000 = 1000 USDC). The allowance we inspected is 2,000,000,000 (2000 USDC). So allowance sufficient.\n\nWe need to ensure no malicious behavior: It's a standard transferFrom. The token is USDC, verified proxy with implementation verified. Should be safe. However, we might want to simulate to see if any reverts or extra calls. Let's simulate.",
+            "tool": "simulate_tx",
+            "args": {},
+            "observation": {
+              "reverts": false,
+              "revert_reason": null,
+              "asset_changes": [
+                {
+                  "asset": "0x3a37dfe702393e0fa6c8bbc2a299e490bbed2cf3",
+                  "from": "0xf601cab408eeb25c1011dd07f451c826a66f6207",
+                  "to": "0x8369a8d0ac08dc3b2fb6ed8fc28b7d7ceb2e7ec1",
+                  "amount": "1000000000"
+                }
+              ],
+              "approval_changes": [],
+              "available": true,
+              "sim_ms": 7.11
+            },
+            "latency_ms": 7.212
           }
         ],
         "final": {
@@ -631,23 +1030,24 @@
               "source": "assess"
             }
           ],
-          "finish_thought": "The transaction is sending 0.001 ETH (1e15 wei) to an EOA. No data. So it's a simple ETH transfer. Need to check if any red flags: recipient is an EOA, not a contract. No known scam. Age 1356 days, many txs. Sender is also EOA, not flagged. No data. So likely safe. However, need to consider if the sender might be sending to a known address that could be a phishing address? But no evidence. So ALLOW.\n\nWe should maybe simulate? Not needed. But we can simulate to see if any revert? Simple transfer to EOA always succeeds unless insufficient balance. Assume enough balance. So ALLOW."
+          "finish_thought": "We have a transaction: to USDC proxy contract, from user (EOA). Data is 0x23b872dd... which is ERC-20 transferFrom selector (transferFrom(address from, address to, uint256 amount)). Indeed selector 0x23b872dd is transferFrom. Parameters: from = 0xf601cab408eeb25c1011dd07f451c826a66f6207, to = 0x8369a8d0ac08dc3b2fb6ed8fc28b7d7ceb2e7ec1 (the sender's address), amount = 0x3b9aca00 = 1000000000 (1e9) which for USDC (6 decimals) is 1000 USDC? Actually USDC has 6 decimals, so 1e9 = 1000 USDC. The allowance from owner to spender is 2,000,000,000 (2000 USDC). So allowance sufficient.\n\nSimulated transaction shows asset change: USDC moved from owner to spender (the user). No approvals changed. No revert.\n\nThus transaction is a legitimate transferFrom of USDC from another address to the user, using allowance. The user is the spender. The user must have been granted allowance. The allowance is present. No suspicious behavior.\n\nThus safe to allow. Provide rationale: standard ERC-20 transferFrom, allowance sufficient, simulation shows transfer, no reverts, contract verified, not scam listed.\n\nDecision: ALLOW."
         },
         "usage": {
-          "tool_calls": 2,
-          "tool_attempts": 2,
+          "tool_calls": 5,
+          "tool_attempts": 5,
           "tool_failures": 0,
-          "latency_ms": 58087.52,
-          "llm_calls": 3,
-          "input_tokens": 2536,
-          "output_tokens": 485,
+          "latency_ms": 44749.182,
+          "llm_calls": 6,
+          "input_tokens": 7514,
+          "output_tokens": 1982,
           "cost_usd": 0.0,
           "providers": {
-            "cerebras:gpt-oss-120b": 3
+            "groq:openai/gpt-oss-120b": 6
           },
-          "fallback_calls": 0,
+          "fallback_calls": 3,
           "provider_order": [
-            "cerebras"
+            "cerebras",
+            "groq"
           ],
           "temperature": 0.2,
           "top_p": 0.7,
@@ -656,23 +1056,527 @@
           "llm_error_msgs": [],
           "llm_log": [
             {
-              "ts": "2026-11-08T18:44:58",
+              "ts": "2026-11-10T16:12:48",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 1115
+            },
+            {
+              "event": "response",
+              "provider": "groq",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "lookup_address"
+              ],
+              "usage": {
+                "queue_time": 0.24734118,
+                "prompt_tokens": 806,
+                "prompt_time": 0.040582623,
+                "completion_tokens": 305,
+                "completion_time": 0.640527569,
+                "total_tokens": 1111,
+                "total_time": 0.681110192,
+                "completion_tokens_details": {
+                  "reasoning_tokens": 253
+                }
+              }
+            },
+            {
+              "ts": "2026-11-10T16:12:49",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 1507
+            },
+            {
+              "event": "response",
+              "provider": "groq",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "inspect_allowance"
+              ],
+              "usage": {
+                "queue_time": 0.252734404,
+                "prompt_tokens": 983,
+                "prompt_time": 0.230180177,
+                "completion_tokens": 431,
+                "completion_time": 0.900384063,
+                "total_tokens": 1414,
+                "total_time": 1.13056424,
+                "completion_tokens_details": {
+                  "reasoning_tokens": 325
+                }
+              }
+            },
+            {
+              "ts": "2026-11-10T16:12:51",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 1600
+            },
+            {
+              "event": "response",
+              "provider": "groq",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "resolve_proxy"
+              ],
+              "usage": {
+                "queue_time": 0.559398804,
+                "prompt_tokens": 1204,
+                "prompt_time": 0.294674435,
+                "completion_tokens": 236,
+                "completion_time": 0.495912668,
+                "total_tokens": 1440,
+                "total_time": 0.790587103,
+                "completion_tokens_details": {
+                  "reasoning_tokens": 189
+                }
+              }
+            },
+            {
+              "ts": "2026-11-10T16:12:52",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
+              "status": 429,
+              "ms": 105,
+              "error": "{\"error\":{\"message\":\"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m6v7xfk6etvvdvyav2q5ctw8` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 7603, Requested 1597. Please try again in 9s. Need more tokens? Upgrade to Dev Tier today at https://console.",
+              "retry_after": "9"
+            },
+            {
+              "ts": "2026-11-10T16:12:52",
+              "provider": "groq",
+              "status": "cooldown",
+              "wait_s": 9.0
+            },
+            {
+              "ts": "2026-11-10T16:13:01",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
+              "status": 429,
+              "ms": 154,
+              "error": "{\"error\":{\"message\":\"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m6v7xfk6etvvdvyav2q5ctw8` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6383, Requested 1781. Please try again in 1.23s. Need more tokens? Upgrade to Dev Tier today at https://conso",
+              "retry_after": "2"
+            },
+            {
+              "ts": "2026-11-10T16:13:01",
+              "provider": "groq",
+              "status": "cooldown",
+              "wait_s": 2.0
+            },
+            {
+              "ts": "2026-11-10T16:13:03",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 1398
+            },
+            {
+              "event": "response",
+              "provider": "groq",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "lookup_address"
+              ],
+              "usage": {
+                "queue_time": 0.374498795,
+                "prompt_tokens": 1350,
+                "prompt_time": 0.059218858,
+                "completion_tokens": 360,
+                "completion_time": 0.754852188,
+                "total_tokens": 1710,
+                "total_time": 0.814071046,
+                "completion_tokens_details": {
+                  "reasoning_tokens": 317
+                }
+              }
+            },
+            {
+              "ts": "2026-11-10T16:13:05",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
+              "status": 429,
+              "ms": 213,
+              "error": "{\"error\":{\"message\":\"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m6v7xfk6etvvdvyav2q5ctw8` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 7627, Requested 1903. Please try again in 11.475s. Need more tokens? Upgrade to Dev Tier today at https://con",
+              "retry_after": "12"
+            },
+            {
+              "ts": "2026-11-10T16:13:05",
+              "provider": "groq",
+              "status": "cooldown",
+              "wait_s": 12.0
+            },
+            {
+              "ts": "2026-11-10T16:13:17",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 1000
+            },
+            {
+              "event": "response",
+              "provider": "groq",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "simulate_tx"
+              ],
+              "usage": {
+                "queue_time": 0.257695117,
+                "prompt_tokens": 1501,
+                "prompt_time": 0.110802887,
+                "completion_tokens": 235,
+                "completion_time": 0.501571163,
+                "total_tokens": 1736,
+                "total_time": 0.61237405,
+                "completion_tokens_details": {
+                  "reasoning_tokens": 217
+                }
+              }
+            },
+            {
+              "ts": "2026-11-10T16:13:18",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
+              "status": 429,
+              "ms": 138,
+              "error": "{\"error\":{\"message\":\"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m6v7xfk6etvvdvyav2q5ctw8` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 7595, Requested 2072. Please try again in 12.5025s. Need more tokens? Upgrade to Dev Tier today at https://co",
+              "retry_after": "13"
+            },
+            {
+              "ts": "2026-11-10T16:13:18",
+              "provider": "groq",
+              "status": "cooldown",
+              "wait_s": 13.0
+            },
+            {
+              "ts": "2026-11-10T16:13:31",
+              "provider": "groq",
+              "model": "openai/gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 1500
+            },
+            {
+              "event": "response",
+              "provider": "groq",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "finish"
+              ],
+              "usage": {
+                "queue_time": 0.375404628,
+                "prompt_tokens": 1670,
+                "prompt_time": 0.090845007,
+                "completion_tokens": 415,
+                "completion_time": 0.884355015,
+                "total_tokens": 2085,
+                "total_time": 0.975200022,
+                "completion_tokens_details": {
+                  "reasoning_tokens": 316
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "new_dapp_bounded-03",
+      "category": "new_dapp_bounded",
+      "label": "benign",
+      "decision": "ESCALATE",
+      "failure_category": "FP: new/unverified legitimate counterparty",
+      "codes": [
+        "UNVERIFIED_SPENDER"
+      ],
+      "prob": 0.44,
+      "trace": {
+        "planner": "llm",
+        "steps": [
+          {
+            "step": 0,
+            "thought": "We need to inspect this transaction. It's an approve call (selector 0x095ea7b3 = approve(address spender, uint256 amount)). Data: selector + spender address + amount.\n\nWe need to decode. Use decode_calldata.",
+            "tool": "decode_calldata",
+            "args": {
+              "abi_from": "0x9ae3e8e5df28fb36d4e020e267318b40af47f492"
+            },
+            "observation": {
+              "selector": "0x095ea7b3",
+              "function": "approve",
+              "signature": "approve(address,uint256)",
+              "args": {
+                "spender": "0x0788d0931079c3d5dafad6cab295e48f2c34dd51",
+                "amount": 25392488698
+              },
+              "known": true,
+              "decode_error": null,
+              "abi_source": "selector_db"
+            },
+            "latency_ms": 0.139
+          },
+          {
+            "step": 1,
+            "thought": "The transaction is an ERC20 approve call: spender 0x0788... and amount 25,392,488,698 (approx 25.4 billion). Need to see token contract. The \"to\" address is likely token contract. Let's lookup address.",
+            "tool": "lookup_address",
+            "args": {
+              "address": "0x9ae3e8e5df28fb36d4e020e267318b40af47f492"
+            },
+            "observation": {
+              "address": "0x9ae3e8e5df28fb36d4e020e267318b40af47f492",
+              "known": true,
+              "kind": "contract",
+              "age_days": 1927,
+              "tx_count": 1000000,
+              "verified": true,
+              "scam_listed": false,
+              "label": "DAI token",
+              "is_proxy": false,
+              "has_verified_abi": false,
+              "fresh": false,
+              "metadata_untrusted": {
+                "name": "Dai Stablecoin",
+                "symbol": "DAI"
+              }
+            },
+            "latency_ms": 0.104
+          },
+          {
+            "step": 2,
+            "thought": "The transaction is an approve call to DAI token (address). Approving spender 0x0788... for amount 25,392,488,698 (approx 25.4 billion DAI). That's huge. Need to see if this is typical. Check allowance currently.",
+            "tool": "inspect_allowance",
+            "args": {
+              "owner": "0x836bd69aa8baca6318af2f4e5f9d4c53b699f42c",
+              "token": "0x9ae3e8e5df28fb36d4e020e267318b40af47f492",
+              "spender": "0x0788d0931079c3d5dafad6cab295e48f2c34dd51"
+            },
+            "observation": {
+              "owner": "0x836bd69aa8baca6318af2f4e5f9d4c53b699f42c",
+              "token": "0x9ae3e8e5df28fb36d4e020e267318b40af47f492",
+              "spender": "0x0788d0931079c3d5dafad6cab295e48f2c34dd51",
+              "allowance": "0"
+            },
+            "latency_ms": 0.058
+          },
+          {
+            "step": 3,
+            "thought": "We have an approve transaction for DAI token (address is DAI token). The user is approving spender 0x0788... for amount 25,392,488,698 (which is about 25.4 billion DAI? Actually DAI has 18 decimals, so amount is 25.4? Wait: amount is 25392488698 wei of DAI (i.e., 2.539e10 wei). That's 0.000025392488698 DAI? Actually DAI decimals 18, so 1 DAI = 1e18 wei. So 2.5e10 wei = 2.5e-8 DAI, negligible. So approving a tiny amount. However typical approve amounts are large (max uint256). This tiny amount may be suspicious? Could be a malicious contract that tries to get approval for a small amount to later drain? But approving a tiny amount is not dangerous; it's safe. However we need to see if spender is malicious. Let's lookup spender address.",
+            "tool": "lookup_address",
+            "args": {
+              "address": "0x0788d0931079c3d5dafad6cab295e48f2c34dd51"
+            },
+            "observation": {
+              "address": "0x0788d0931079c3d5dafad6cab295e48f2c34dd51",
+              "known": true,
+              "kind": "contract",
+              "age_days": 29,
+              "tx_count": 63,
+              "verified": false,
+              "scam_listed": false,
+              "label": "",
+              "is_proxy": false,
+              "has_verified_abi": false,
+              "fresh": false,
+              "metadata_untrusted": {
+                "name": "Orbit Swap"
+              }
+            },
+            "latency_ms": 0.182
+          },
+          {
+            "step": 4,
+            "thought": "We have a transaction from user to DAI token contract, calling approve(spender=0x0788..., amount=25392488698). This is approving ~25.4 billion DAI (units? DAI has 18 decimals, so that's 0.000025... Actually 25,392,488,698 wei of DAI = 0.000025 DAI). Very small amount. The spender is a contract named \"Orbit Swap\" (unverified). Need to see if this is a known swap router. Could be legitimate. Check if spender is a known router like 0x0788... maybe it's a known aggregator. Let's simulate transaction to see if any reverts.",
+            "tool": "simulate_tx",
+            "args": {},
+            "observation": {
+              "reverts": false,
+              "revert_reason": null,
+              "asset_changes": [],
+              "approval_changes": [
+                {
+                  "token": "0x9ae3e8e5df28fb36d4e020e267318b40af47f492",
+                  "owner": "0x836bd69aa8baca6318af2f4e5f9d4c53b699f42c",
+                  "spender": "0x0788d0931079c3d5dafad6cab295e48f2c34dd51",
+                  "amount": "25392488698"
+                }
+              ],
+              "available": true,
+              "sim_ms": 2.153
+            },
+            "latency_ms": 2.201
+          }
+        ],
+        "final": {
+          "raw_score": 0.44,
+          "prob": 0.44,
+          "evidence_decision": "ESCALATE",
+          "proposed": "WARN",
+          "decision": "ESCALATE",
+          "verifier_notes": [
+            "reasoner proposed WARN below evidence floor ESCALATE; clamped",
+            "reasoner rationale copied untrusted on-chain text; withheld from user"
+          ],
+          "missing_evidence": [],
+          "cannot_assess": false,
+          "findings": [
+            {
+              "code": "TOKEN_APPROVAL",
+              "severity": 0.2,
+              "message": "grants a bounded token allowance of 25392488698 to 0x0788d0931079c3d5dafad6cab295e48f2c34dd51",
+              "source": "rules"
+            },
+            {
+              "code": "UNVERIFIED_SPENDER",
+              "severity": 0.3,
+              "message": "spender 0x0788d0931079c3d5dafad6cab295e48f2c34dd51 is an unverified contract",
+              "source": "lookup_address"
+            }
+          ],
+          "finish_thought": "We have an approve transaction from user to DAI token (address is DAI token). Approving spender Orbit Swap for amount 25,392,488,698 (approx 25.4 billion DAI). That's huge; likely user didn't intend to approve that much. Need to assess risk. The spender is a contract named Orbit Swap, not verified, age 29 days, low tx count. Could be a scam. Approving large amount could allow malicious contract to drain tokens. The user may be trying to interact with a DEX, but typical approvals are limited to amount needed for a swap. 25B DAI is huge; user likely doesn't have that many DAI (unknown). Could be a phishing attempt. The transaction itself is a standard ERC20 approve, which is not malicious per se, but the amount is suspicious. The user may be trying to approve for a swap but mistakenly set max uint256? Actually amount is 0x5e982a0fa = decimal 25392488698. That's not max uint256. So it's a specific large amount. Could be a scam contract that asks for large approval. Since we cannot verify the spender contract, and it's not verified, we should warn. The decision: WARN with rationale: large approval to unverified contract, potential risk."
+        },
+        "usage": {
+          "tool_calls": 5,
+          "tool_attempts": 5,
+          "tool_failures": 0,
+          "latency_ms": 55574.168,
+          "llm_calls": 6,
+          "input_tokens": 7225,
+          "output_tokens": 1166,
+          "cost_usd": 0.0,
+          "providers": {
+            "cerebras:gpt-oss-120b": 6
+          },
+          "fallback_calls": 1,
+          "provider_order": [
+            "cerebras",
+            "groq"
+          ],
+          "temperature": 0.2,
+          "top_p": 0.7,
+          "seed": null,
+          "llm_errors": 0,
+          "llm_error_msgs": [],
+          "llm_log": [
+            {
+              "ts": "2026-11-10T22:29:46",
+              "provider": "cerebras",
+              "model": "gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 917
+            },
+            {
+              "event": "response",
+              "provider": "cerebras",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "decode_calldata"
+              ],
+              "usage": {
+                "total_tokens": 836,
+                "completion_tokens": 100,
+                "completion_tokens_details": {
+                  "accepted_prediction_tokens": 0,
+                  "rejected_prediction_tokens": 0,
+                  "reasoning_tokens": 49
+                },
+                "prompt_tokens": 736,
+                "prompt_tokens_details": {
+                  "cached_tokens": 512
+                }
+              }
+            },
+            {
+              "ts": "2026-11-10T22:29:46",
+              "provider": "cerebras",
+              "model": "gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 846
+            },
+            {
+              "event": "response",
+              "provider": "cerebras",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "lookup_address"
+              ],
+              "usage": {
+                "total_tokens": 1001,
+                "completion_tokens": 103,
+                "completion_tokens_details": {
+                  "accepted_prediction_tokens": 0,
+                  "rejected_prediction_tokens": 0,
+                  "reasoning_tokens": 54
+                },
+                "prompt_tokens": 898,
+                "prompt_tokens_details": {
+                  "cached_tokens": 512
+                }
+              }
+            },
+            {
+              "ts": "2026-11-10T22:29:47",
+              "provider": "cerebras",
+              "model": "gpt-oss-120b",
+              "attempt": 0,
+              "status": 200,
+              "ms": 1127
+            },
+            {
+              "event": "response",
+              "provider": "cerebras",
+              "finish_reason": "tool_calls",
+              "tool_calls": [
+                "inspect_allowance"
+              ],
+              "usage": {
+                "total_tokens": 1256,
+                "completion_tokens": 166,
+                "completion_tokens_details": {
+                  "accepted_prediction_tokens": 0,
+                  "rejected_prediction_tokens": 0,
+                  "reasoning_tokens": 57
+                },
+                "prompt_tokens": 1090,
+                "prompt_tokens_details": {
+                  "cached_tokens": 896
+                }
+              }
+            },
+            {
+              "ts": "2026-11-10T22:29:48",
               "provider": "cerebras",
               "model": "gpt-oss-120b",
               "attempt": 0,
               "status": 429,
-              "ms": 338,
+              "ms": 411,
               "error": "{\"message\":\"Requests per minute limit exceeded - too many requests sent.\",\"type\":\"too_many_requests_error\",\"param\":\"quota\",\"code\":\"request_quota_exceeded\"}",
-              "retry_after": "56",
-              "wait_s": 56.0
+              "retry_after": "50"
             },
             {
-              "ts": "2026-11-08T18:45:54",
+              "ts": "2026-11-10T22:29:49",
+              "provider": "cerebras",
+              "status": "cooldown",
+              "wait_s": 50.0
+            },
+            {
+              "ts": "2026-11-10T22:30:39",
               "provider": "cerebras",
               "model": "gpt-oss-120b",
-              "attempt": 1,
+              "attempt": 0,
               "status": 200,
-              "ms": 656
+              "ms": 991
             },
             {
               "event": "response",
@@ -682,55 +1586,55 @@
                 "lookup_address"
               ],
               "usage": {
-                "total_tokens": 837,
-                "completion_tokens": 161,
+                "total_tokens": 1582,
+                "completion_tokens": 259,
                 "completion_tokens_details": {
                   "accepted_prediction_tokens": 0,
                   "rejected_prediction_tokens": 0,
-                  "reasoning_tokens": 113
+                  "reasoning_tokens": 211
                 },
-                "prompt_tokens": 676,
+                "prompt_tokens": 1323,
                 "prompt_tokens_details": {
                   "cached_tokens": 512
                 }
               }
             },
             {
-              "ts": "2026-11-08T18:45:55",
+              "ts": "2026-11-10T22:30:40",
               "provider": "cerebras",
               "model": "gpt-oss-120b",
               "attempt": 0,
               "status": 200,
-              "ms": 460
+              "ms": 620
             },
             {
               "event": "response",
               "provider": "cerebras",
               "finish_reason": "tool_calls",
               "tool_calls": [
-                "lookup_address"
+                "simulate_tx"
               ],
               "usage": {
-                "total_tokens": 958,
-                "completion_tokens": 111,
+                "total_tokens": 1660,
+                "completion_tokens": 163,
                 "completion_tokens_details": {
                   "accepted_prediction_tokens": 0,
                   "rejected_prediction_tokens": 0,
-                  "reasoning_tokens": 59
+                  "reasoning_tokens": 142
                 },
-                "prompt_tokens": 847,
+                "prompt_tokens": 1497,
                 "prompt_tokens_details": {
-                  "cached_tokens": 512
+                  "cached_tokens": 1024
                 }
               }
             },
             {
-              "ts": "2026-11-08T18:45:55",
+              "ts": "2026-11-10T22:30:40",
               "provider": "cerebras",
               "model": "gpt-oss-120b",
               "attempt": 0,
               "status": 200,
-              "ms": 632
+              "ms": 657
             },
             {
               "event": "response",
@@ -740,14 +1644,14 @@
                 "finish"
               ],
               "usage": {
-                "total_tokens": 1226,
-                "completion_tokens": 213,
+                "total_tokens": 2056,
+                "completion_tokens": 375,
                 "completion_tokens_details": {
                   "accepted_prediction_tokens": 0,
                   "rejected_prediction_tokens": 0,
-                  "reasoning_tokens": 145
+                  "reasoning_tokens": 265
                 },
-                "prompt_tokens": 1013,
+                "prompt_tokens": 1681,
                 "prompt_tokens_details": {
                   "cached_tokens": 640
                 }

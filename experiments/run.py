@@ -195,7 +195,12 @@ def e3(cal, planner="policy", runs=1):
     agg = {key: {mk: mean_std([pr[key][mk] for pr in per_run])
                  for mk in ("f1", "precision", "recall", "accuracy", "false_block_rate", "ece", "tool_calls_mean")}
            for key in ("all", "seen", "held_out")}
-    out = {"planner": planner, "runs": runs, "mean_std": agg, "run0": per_run[0]}
+    out = {"planner": planner, "runs": runs, "mean_std": agg, "run0": per_run[0],
+           "llm_failed_tx_per_run": [pr["llm_failed_tx"] for pr in per_run]}
+    if planner == "llm":  # like-for-like reference: the policy planner on the same (sampled) tx
+        cfg = full_cfg(cal, "policy")
+        cfg.seed = CONFIG["seed"]
+        out["policy_same_sample"] = summarize(run_rows(TEST, cfg))
     save(f"e3_proposed_{planner}.json", out)
     return out
 

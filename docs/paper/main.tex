@@ -374,11 +374,12 @@ sanitizer cues cannot be tuned on test phrasing.
 \subsection{Models and settings}
 The \textsc{PolicyPlanner} is deterministic and requires no model. The
 \textsc{LLMPlanner} runs on Cerebras \texttt{gpt-oss-120b} (temperature 0.2,
-top-$p$ 0.7), with a provider fallback order of NVIDIA NIM $\rightarrow$ Cerebras
-$\rightarrow$ Groq recorded per call in each trace. As a stochastic configuration it
-is repeated three times and reported as mean $\pm$ standard deviation; owing to
-free-tier rate limits (approximately one minute per transaction under backoff), the
-LLM planner is evaluated on a fixed, seeded, stratified sample ($n=12$).
+top-$p$ 0.7). Calls rotate between two providers serving the same model (Cerebras and
+Groq), and the serving provider is recorded per call in each trace. As a stochastic
+configuration it is repeated three times and reported as mean $\pm$ standard
+deviation. Owing to free-tier rate limits, the LLM planner is evaluated on a fixed,
+seeded, stratified sample of $n=45$ test transactions (9 from held-out families);
+the policy planner is also scored on the same 45 for a like-for-like comparison.
 
 \subsection{Baselines}
 \textbf{E1} is the Phase-1 deterministic decode-then-rules pipeline. \textbf{E2} is
@@ -428,18 +429,21 @@ System & F1 & Prec. & Rec. & FBR & ECE \\
 E1 Rule baseline        & 0.545 & 0.616 & 0.489 & 0.258 & 0.344 \\
 E2 Osprey (oracle UB)   & 0.762 & 0.978 & 0.624 & 0.017 & 0.211 \\
 E3 GuardianTx (policy)  & \textbf{0.966} & 0.940 & \textbf{0.993} & \textbf{0.000} & \textbf{0.081} \\
-E3 GuardianTx (LLM)$^\dagger$ & 0.838 & 0.722 & 1.000 & 0.056 & 0.091 \\
+E3 GuardianTx (LLM)$^\dagger$ & 0.893 & 0.806 & 1.000 & 0.000 & 0.127 \\
+\quad policy, same 45 & 0.980 & 0.962 & 1.000 & 0.000 & 0.076 \\
 \bottomrule
 \end{tabular}
 \\[2pt]
-\raggedright\footnotesize $^\dagger$Cerebras \texttt{gpt-oss-120b}, 3 runs $\times$
-stratified $n=12$, mean values; FBR and ECE standard deviations 0.096 and 0.021.
+\raggedright\footnotesize $^\dagger$\texttt{gpt-oss-120b}, 3 runs $\times$ stratified
+$n=45$, mean values; F1/precision/recall/FBR identical in all runs, ECE std 0.022.
 \end{table}
 
 The deterministic policy agent is the system of record. The LLM planner, run three
-times, is stable: recall was 1.000 in every run (no malicious transaction missed);
-one of three runs blocked a benign transaction once, producing the nonzero
-false-block mean. On the held-out families the policy agent attains F1 1.000 versus
+times, is stable: every run produced the same confusion counts (25 TP, 6 FP, 14 TN,
+0 FN), so recall was 1.000 and no benign transaction was ever blocked. All six false
+flags are cautious outcomes (WARN or ESCALATE, 20\% escalation vs.\ 4.4\% for the
+policy planner on the same sample) spread across nine benign categories, which is
+what lowers its precision. On the held-out families the policy agent attains F1 1.000 versus
 0.500 for the rule baseline, evidence that the dynamic investigation generalizes to
 attack structures never seen during development rather than memorizing seen patterns.
 
@@ -466,7 +470,7 @@ ACT-flagged contract passes unnoticed (recall 0.624).
 \fill[gray!55]   (0.5,0) rectangle (1.3,2.18);  \node[above] at (0.9,2.18){0.545};
 \fill[blue!30]   (2.0,0) rectangle (2.8,3.05);  \node[above] at (2.4,3.05){0.762};
 \fill[green!45!black!70] (3.5,0) rectangle (4.3,3.86); \node[above] at (3.9,3.86){\textbf{0.966}};
-\fill[green!25]  (5.0,0) rectangle (5.8,3.35);  \node[above] at (5.4,3.35){0.838};
+\fill[green!25]  (5.0,0) rectangle (5.8,3.57);  \node[above] at (5.4,3.57){0.893};
 % x labels
 \node[below,align=center] at (0.9,0)  {E1\\rule};
 \node[below,align=center] at (2.4,0)  {E2\\Osprey$^\ast$};
@@ -476,7 +480,7 @@ ACT-flagged contract passes unnoticed (recall 0.624).
 \caption{Test-split F1 by system (Table~\ref{tab:main}). $^\ast$E2 is an oracle upper
 bound for contract-side detection, not Osprey's reported figures. The policy agent is
 the system of record; the LLM planner is a stochastic secondary configuration
-($n=12$, 3 runs).}
+($n=45$ sample, 3 runs).}
 \label{fig:f1}
 \end{figure}
 
@@ -683,8 +687,9 @@ lineage) to reduce both error types.
 \section{Discussion}
 Three findings deserve emphasis beyond the per-gap tables. First, the
 \emph{deterministic} policy planner, not the LLM planner, is the system of record, and
-it is the stronger of the two on every safety-relevant metric (F1 0.966 vs.\ 0.838,
-false-block rate 0.0\% vs.\ 5.6\%). In a security setting this is a feature: the
+on the same 45 transactions it is the stronger of the two (F1 0.980 vs.\ 0.893,
+ECE 0.076 vs.\ 0.127), although neither misses an attack or blocks a benign
+transaction. In a security setting this is a feature: the
 deterministic planner is auditable, reproducible bit-for-bit, free to run, and
 incapable of being talked out of a decision by injected text, whereas the LLM planner
 is valuable mainly as evidence that the same loop admits a learned policy and still
@@ -711,9 +716,9 @@ hardening the \emph{decision} against untrusted input generalizes where hardenin
 Results are obtained on a \emph{simulated} chain, not live mainnet traffic; the
 simulator models ERC-20/721 semantics and drainer sweeps but not the full EVM, and
 trusted reputation fields are assumed correct. The base-paper comparison is an oracle
-upper bound, not Osprey's own output. The LLM-planner evaluation is small ($n=12$,
-three runs) due to free-tier rate limits, so its point estimates carry wide
-intervals; the deterministic planner, which does not depend on a model, is the system
+upper bound, not Osprey's own output. The LLM-planner evaluation uses a 45-transaction
+sample (three runs) due to free-tier rate limits, so its point estimates carry wide
+intervals (run-1 F1 95\% CI 0.784--0.967); the deterministic planner, which does not depend on a model, is the system
 of record. The injection taxonomy, though disjoint across splits, is author-authored
 and may not capture adaptive attackers. Finally, the decision-floor guarantee for G1
 holds against reasoner compromise but not against an attacker who can forge trusted
@@ -733,7 +738,7 @@ injections and live chain data.
 \section*{Reproducibility}
 All numbers come from \texttt{results/} and are regenerated by
 \texttt{python experiments/run.py all} (E1--E6, offline) and
-\texttt{python experiments/run.py e3 --planner llm --runs 3 --sample 12} (LLM
+\texttt{python experiments/run.py e3 --planner llm --runs 3 --sample 45} (LLM
 planner); the corpus is built by \texttt{python data/build\_corpus.py} (seed 2026).
 
 \begin{thebibliography}{00}

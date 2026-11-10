@@ -4,62 +4,62 @@
   "mean_std": {
     "all": {
       "f1": [
-        0.8380952380952381,
-        0.03299144395369285
+        0.8928571428571428,
+        0.0
       ],
       "precision": [
-        0.7222222222222222,
-        0.048112522432468836
+        0.8064516129032256,
+        0.0
       ],
       "recall": [
         1.0,
         0.0
       ],
       "accuracy": [
-        0.8055555555555557,
-        0.048112522432468836
+        0.8666666666666667,
+        0.0
       ],
       "false_block_rate": [
-        0.05555555555555555,
-        0.09622504486493762
+        0.0,
+        0.0
       ],
       "ece": [
-        0.09110555555555555,
-        0.021169509870286277
+        0.12680814814814814,
+        0.021779289441110586
       ],
       "tool_calls_mean": [
-        4.25,
-        0.33333333333333326
+        4.007407407407407,
+        0.2334215000976109
       ]
     },
     "seen": {
       "f1": [
-        0.8119658119658119,
-        0.03700963264036056
+        0.8421052631578948,
+        0.0
       ],
       "precision": [
-        0.6845238095238096,
-        0.05154913117764517
+        0.7272727272727272,
+        0.0
       ],
       "recall": [
         1.0,
         0.0
       ],
       "accuracy": [
-        0.787878787878788,
-        0.05248638810814781
+        0.8333333333333334,
+        0.0
       ],
       "false_block_rate": [
-        0.05555555555555555,
-        0.09622504486493762
+        0.0,
+        0.0
       ],
       "ece": [
-        0.09919696969696971,
-        0.023094010767585035
+        0.15052962962962965,
+        0.027224111801388246
       ],
       "tool_calls_mean": [
-        3.9090909090909087,
-        0.2727272727272727
+        3.75,
+        0.15466012118972272
       ]
     },
     "held_out": {
@@ -84,65 +84,65 @@
         0.0
       ],
       "ece": [
-        0.0020999999999999908,
+        0.031922222222222185,
         0.0
       ],
       "tool_calls_mean": [
-        8.0,
-        1.0
+        5.037037037037037,
+        0.5592469952052405
       ]
     }
   },
   "run0": {
     "all": {
-      "n": 12,
-      "tp": 6,
-      "fp": 2,
-      "tn": 4,
+      "n": 45,
+      "tp": 25,
+      "fp": 6,
+      "tn": 14,
       "fn": 0,
-      "accuracy": 0.8333333333333334,
-      "precision": 0.75,
+      "accuracy": 0.8666666666666667,
+      "precision": 0.8064516129032258,
       "recall": 1.0,
-      "f1": 0.8571428571428571,
-      "false_flag_rate": 0.3333333333333333,
+      "f1": 0.8928571428571428,
+      "false_flag_rate": 0.3,
       "false_block_rate": 0.0,
-      "escalation_rate": 0.16666666666666666,
-      "ece": 0.07888333333333332,
-      "brier": 0.018186055,
-      "aurc": 0.0,
-      "coverage": 0.8333333333333334,
+      "escalation_rate": 0.2,
+      "ece": 0.14843777777777778,
+      "brier": 0.11889346955555556,
+      "aurc": 0.2815895533232429,
+      "coverage": 0.8,
       "selective_accuracy": 1.0,
-      "tool_calls_mean": 4.25,
-      "latency_ms_mean": 60690.20975,
+      "tool_calls_mean": 4.0,
+      "latency_ms_mean": 407349.7267111111,
       "f1_ci95": [
-        0.6,
-        1.0
+        0.7843137254901961,
+        0.9666666666666666
       ]
     },
     "seen": {
-      "n": 11,
-      "tp": 5,
-      "fp": 2,
-      "tn": 4,
+      "n": 36,
+      "tp": 16,
+      "fp": 6,
+      "tn": 14,
       "fn": 0,
-      "accuracy": 0.8181818181818182,
-      "precision": 0.7142857142857143,
+      "accuracy": 0.8333333333333334,
+      "precision": 0.7272727272727273,
       "recall": 1.0,
-      "f1": 0.8333333333333333,
-      "false_flag_rate": 0.3333333333333333,
+      "f1": 0.8421052631578948,
+      "false_flag_rate": 0.3,
       "false_block_rate": 0.0,
-      "escalation_rate": 0.18181818181818182,
-      "ece": 0.08586363636363636,
-      "brier": 0.019838931818181818,
-      "aurc": 0.0,
-      "coverage": 0.8181818181818182,
+      "escalation_rate": 0.25,
+      "ece": 0.1775666666666667,
+      "brier": 0.14792573388888888,
+      "aurc": 0.32137736960451435,
+      "coverage": 0.75,
       "selective_accuracy": 1.0,
-      "tool_calls_mean": 3.909090909090909,
-      "latency_ms_mean": 60480.96636363636
+      "tool_calls_mean": 3.7222222222222223,
+      "latency_ms_mean": 401281.22452777775
     },
     "held_out": {
-      "n": 1,
-      "tp": 1,
+      "n": 9,
+      "tp": 9,
       "fp": 0,
       "tn": 0,
       "fn": 0,
@@ -153,52 +153,115 @@
       "false_flag_rate": 0.0,
       "false_block_rate": 0.0,
       "escalation_rate": 0.0,
-      "ece": 0.0020999999999999908,
-      "brier": 4.409999999999961e-06,
+      "ece": 0.031922222222222185,
+      "brier": 0.0027644122222222206,
       "aurc": 0.0,
       "coverage": 1.0,
       "selective_accuracy": 1.0,
-      "tool_calls_mean": 8.0,
-      "latency_ms_mean": 62991.887
+      "tool_calls_mean": 5.111111111111111,
+      "latency_ms_mean": 431623.73544444446
     },
     "per_category": {
+      "benign/allowance_spend": {
+        "ESCALATE": 2
+      },
       "benign/dex_approval_bounded": {
+        "WARN": 1,
+        "ALLOW": 1
+      },
+      "benign/dex_approval_unlimited": {
+        "WARN": 1,
         "ALLOW": 1
       },
       "benign/native_transfer": {
-        "ESCALATE": 1
+        "ESCALATE": 2
       },
       "benign/new_dapp_bounded": {
-        "ESCALATE": 1
+        "ESCALATE": 1,
+        "WARN": 1
+      },
+      "benign/nft_marketplace_operator": {
+        "WARN": 1,
+        "ALLOW": 1
       },
       "benign/permit_router": {
+        "WARN": 1,
         "ALLOW": 1
       },
       "benign/revoke": {
+        "ALLOW": 2
+      },
+      "benign/token_transfer": {
+        "ESCALATE": 1,
         "ALLOW": 1
       },
       "benign/verified_protocol_call": {
+        "WARN": 1,
         "ALLOW": 1
       },
       "malicious/address_poisoning": {
+        "ESCALATE": 1,
         "BLOCK": 1
       },
       "malicious/approval_phishing": {
-        "BLOCK": 1
+        "BLOCK": 2
       },
       "malicious/bounded_approval_drain": {
+        "ESCALATE": 1,
         "BLOCK": 1
+      },
+      "malicious/claim_drain": {
+        "BLOCK": 2
       },
       "malicious/multicall_proxy_drain": {
-        "BLOCK": 1
+        "BLOCK": 3
+      },
+      "malicious/native_to_scam": {
+        "BLOCK": 2
       },
       "malicious/nft_operator_phish": {
-        "BLOCK": 1
+        "BLOCK": 2
+      },
+      "malicious/permit_phish": {
+        "BLOCK": 2
+      },
+      "malicious/poisoned_spender_approval": {
+        "BLOCK": 3
+      },
+      "malicious/proxy_upgrade_drain": {
+        "BLOCK": 3
       },
       "malicious/transfer_to_scam": {
-        "BLOCK": 1
+        "BLOCK": 1,
+        "ESCALATE": 1
       }
     },
     "llm_failed_tx": 0
+  },
+  "llm_failed_tx_per_run": [
+    0,
+    0,
+    0
+  ],
+  "policy_same_sample": {
+    "n": 45,
+    "tp": 25,
+    "fp": 1,
+    "tn": 19,
+    "fn": 0,
+    "accuracy": 0.9777777777777777,
+    "precision": 0.9615384615384616,
+    "recall": 1.0,
+    "f1": 0.9803921568627451,
+    "false_flag_rate": 0.05,
+    "false_block_rate": 0.0,
+    "escalation_rate": 0.044444444444444446,
+    "ece": 0.07624222222222223,
+    "brier": 0.022643535333333336,
+    "aurc": 0.0009988776655443321,
+    "coverage": 0.9555555555555556,
+    "selective_accuracy": 1.0,
+    "tool_calls_mean": 3.488888888888889,
+    "latency_ms_mean": 0.7585555555555555
   }
 }
