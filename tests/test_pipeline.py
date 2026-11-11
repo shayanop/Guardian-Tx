@@ -39,6 +39,20 @@ def test_baseline_catches_clear_drainers():
         assert r.decision != Decision.ALLOW, f"{rid} was ALLOWed: {r.rationale}"
 
 
+def test_hex_quantities_are_accepted():
+    # wallets / JSON-RPC send value and chainId as 0x-hex strings
+    from guardiantx.agent import tx_from_row
+    from guardiantx.encoding import parse_quantity
+    assert parse_quantity("0x2386f26fc10000") == 10**16
+    assert parse_quantity("0x0") == 0 and parse_quantity("42") == 42 and parse_quantity(7) == 7
+    assert parse_quantity(None) == 0 and parse_quantity(None, default=1) == 1
+    row = dict(_rows()[0], value="0x2386f26fc10000", chain_id="0x89")
+    r = analyze_dict(row)
+    assert r.tx.value == 10**16 and r.tx.chain_id == 137
+    tx = tx_from_row(row)
+    assert tx.value == 10**16 and tx.chain_id == 137
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

@@ -25,7 +25,7 @@ from typing import Any, Optional
 from .assess import Evidence, assess, counterparties
 from .calibration import Calibrator
 from .contracts import Decision, RiskReport, Transaction, DecodedCall
-from .encoding import strip0x
+from .encoding import parse_quantity, strip0x
 from .guard import echoes_untrusted, verify
 from .tools import Toolbox
 from .world import World
@@ -242,6 +242,6 @@ def run_agent(tx: Transaction, world: World, cfg: AgentConfig | None = None, pla
 
 
 def tx_from_row(row: dict[str, Any]) -> Transaction:
-    return Transaction(to=row["to"], data=row.get("data", "0x"), value=int(row.get("value", 0)),
-                       frm=row.get("from") or row.get("frm"), chain_id=int(row.get("chain_id", 1)),
+    return Transaction(to=row["to"], data=row.get("data", "0x"), value=parse_quantity(row.get("value")),
+                       frm=row.get("from") or row.get("frm"), chain_id=parse_quantity(row.get("chain_id"), default=1),
                        recent_counterparties=row.get("recent_counterparties", []))

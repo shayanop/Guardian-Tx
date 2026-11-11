@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from .contracts import RiskReport, Transaction
 from .decoder import decode
+from .encoding import parse_quantity
 from .rules import evaluate
 
 
@@ -35,9 +36,9 @@ def analyze_dict(d: dict, **kw) -> RiskReport:
     tx = Transaction(
         to=d["to"],
         data=d.get("data", "0x"),
-        value=int(d.get("value", 0)),
+        value=parse_quantity(d.get("value")),
         frm=d.get("from") or d.get("frm"),
-        chain_id=int(d.get("chain_id", 1)),
+        chain_id=parse_quantity(d.get("chain_id"), default=1),
         recent_counterparties=d.get("recent_counterparties", []),
         known_tokens=d.get("known_tokens", {}),
     )

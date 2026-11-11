@@ -18,6 +18,23 @@ def strip0x(h: str) -> str:
     return h[2:] if h.startswith(("0x", "0X")) else h
 
 
+def parse_quantity(v, default: int = 0) -> int:
+    """Parse an integer tx field (value, chain_id).
+
+    Accepts a plain int, a decimal string, or a 0x-prefixed hex string -- the
+    JSON-RPC "quantity" encoding that wallets and eth_sendTransaction payloads
+    use (e.g. "0x2386f26fc10000"). A missing or null field yields `default`.
+    """
+    if v is None:
+        return default
+    if isinstance(v, str):
+        s = v.strip()
+        if s[:2].lower() == "0x":
+            return int(s[2:] or "0", 16)
+        return int(s)
+    return int(v)
+
+
 def split_words(params_hex: str) -> list[str]:
     """Split the calldata body (after the 4-byte selector) into 32-byte words."""
     p = strip0x(params_hex)
