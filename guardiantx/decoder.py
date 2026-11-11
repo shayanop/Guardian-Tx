@@ -7,6 +7,8 @@ signal (ESCALATE), which is the whole point of pre-signing defense.
 """
 from __future__ import annotations
 
+import re
+
 from . import encoding as enc
 from .contracts import DecodedCall, Transaction
 from .signatures import lookup
@@ -16,6 +18,8 @@ _DECODERS = {
     "uint256": enc.decode_uint,
     "bool": enc.decode_bool,
 }
+
+_HEX = re.compile(r"[0-9a-fA-F]*")
 
 
 def decode(tx: Transaction) -> DecodedCall:
@@ -29,6 +33,12 @@ def decode(tx: Transaction) -> DecodedCall:
             decode_error="calldata shorter than a 4-byte selector",
         )
 
+    if not _HEX.fullmatch(data):
+        return DecodedCall(
+            selector="0x" + data[:8].lower(), function=None, signature=None, known=False,
+            decode_error="calldata contains non-hex characters",
+        )
+
     selector = "0x" + data[:8].lower()
     sig = lookup(selector)
     if sig is None:
@@ -40,6 +50,9 @@ def decode(tx: Transaction) -> DecodedCall:
     for i, (name, typ) in enumerate(sig["params"]):
         if i >= len(words):
             error = f"missing word for param '{name}'"
+            break
+        if len(words[i]) != enc.WORD:
+            error = f"truncated word for param '{name}'"
             break
         try:
             args[name] = _DECODERS[typ](words[i])

@@ -43,6 +43,19 @@ def test_truncated_calldata_reports_error():
     assert d.known and d.decode_error is not None
 
 
+def test_partial_final_word_reports_error():
+    # second param present but cut short: must not silently decode a smaller amount
+    data = build_calldata("0x095ea7b3", enc_address(SPENDER), enc_uint(MAX_UINT256)[:-2])
+    d = decode(Transaction(to="0xabc", data=data))
+    assert d.known and d.decode_error is not None and "amount" not in d.args
+
+
+def test_non_hex_calldata_reports_error():
+    data = build_calldata("0x095ea7b3", enc_address(SPENDER)[:-2] + "zz", enc_uint(1))
+    d = decode(Transaction(to="0xabc", data=data))
+    assert not d.known and d.decode_error is not None
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
