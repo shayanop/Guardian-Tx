@@ -93,7 +93,8 @@ python -m guardiantx.cli --file examples/heldout_proxy_drain.json --agent --plan
 python -m guardiantx.cli --file examples/unlimited_approve.json
 ```
 
-Exit code: 0 = ALLOW/WARN, 2 = BLOCK/ESCALATE.
+Exit code: 0 = ALLOW/WARN, 2 = BLOCK/ESCALATE, 1 = unreadable or invalid input
+(missing file, malformed JSON, no `to` address) or a configuration error.
 
 ## Reproducing the experiments
 
@@ -101,7 +102,7 @@ Exit code: 0 = ALLOW/WARN, 2 = BLOCK/ESCALATE.
 python data/build_corpus.py                 # world.json, corpus.jsonl, splits.json, injections.jsonl (seed 2026)
 python experiments/run.py all               # E1-E6, offline, about 10 s; writes results/ and logs/
 python experiments/run.py e3 --planner llm --runs 3 --sample 45 --resume   # LLM planner, stratified test subset
-python tests/test_agent.py && python tests/test_decoder.py && python tests/test_rules.py && python tests/test_pipeline.py
+python tests/test_agent.py && python tests/test_decoder.py && python tests/test_rules.py && python tests/test_pipeline.py && python tests/test_cli.py
 ```
 
 | Exp. | What | Output |

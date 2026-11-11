@@ -6,6 +6,8 @@
     python -m guardiantx.cli --file tx.json --simulate --explain
     python -m guardiantx.cli --file tx.json --agent --trace           # Phase-2 agent
     python -m guardiantx.cli --file tx.json --agent --planner llm     # LLM planner (NVIDIA NIM)
+
+Exit code: 0 = ALLOW/WARN, 2 = BLOCK/ESCALATE, 1 = bad input or configuration.
 """
 from __future__ import annotations
 
@@ -55,8 +57,10 @@ def main(argv=None) -> int:
     except Exception:
         pass
 
-    raw = open(args.file, encoding="utf-8").read() if args.file else sys.stdin.read()
-    tx = json.loads(raw)
+    tx, err = _read_tx(args.file)
+    if err:
+        print(f"error: {err}", file=sys.stderr)
+        return 1
 
     trace = None
     if args.agent:
@@ -77,6 +81,25 @@ def main(argv=None) -> int:
         print(_render(report))
     # exit code doubles as a signal for scripts: 0 allow/warn, 2 block/escalate
     return 0 if report.decision.value in ("ALLOW", "WARN") else 2
+
+
+def _read_tx(path):
+    """Load one transaction object from `path` (or stdin). Returns (tx, error)."""
+    try:
+        if path:
+            with open(path, encoding="utf-8") as fh:
+                raw = fh.read()
+        else:
+            raw = sys.stdin.read()
+    except OSError as e:
+        return None, f"cannot read {path}: {e.strerror or e}"
+    try:
+        tx = json.loads(raw)
+    except json.JSONDecodeError as e:
+        return None, f"input is not valid JSON ({e.msg} at line {e.lineno}, column {e.colno})"
+    if not isinstance(tx, dict) or not tx.get("to"):
+        return None, 'input must be a JSON object with a "to" address'
+    return tx, None
 
 
 def _run_agent(tx: dict, args):
